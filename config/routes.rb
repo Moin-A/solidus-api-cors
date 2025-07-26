@@ -23,6 +23,8 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     get 'test', to: 'test#index'
+    post 'login', to: 'auth#login'
+    post 'register', to: 'auth#register'
     resources :products, only: [:index, :show]
   end
 

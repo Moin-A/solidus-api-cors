@@ -5,6 +5,12 @@ Rails.application.routes.draw do
   }
   mount SolidusPaypalCommercePlatform::Engine, at: '/solidus_paypal_commerce_platform'
   scope(path: '/') { draw :storefront }
+
+  Spree::Core::Engine.routes.draw do
+    namespace :admin do
+      resource :general_settings, only: [:show, :edit, :update]
+    end
+  end
   # This line mounts Solidus's routes at the root of your application.
   #
   # Unless you manually picked only a subset of Solidus components, this will mount routes for:
@@ -26,6 +32,7 @@ Rails.application.routes.draw do
     post 'login', to: 'auth#login'
     post 'register', to: 'auth#register'
     post 'logout', to: 'auth#logout'
+    resources :stores, only: [:show]
     
     # Test endpoint
     get 'test', to: 'test#index'

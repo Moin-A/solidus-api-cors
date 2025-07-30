@@ -1,0 +1,62 @@
+.errorExplanation {
+  padding: 10px 15px;
+  border-top: 3px solid theme-color("danger");
+  background-color: lighten(theme-color("danger"), 40);
+  border-radius: 0 0 $border-radius $border-radius;
+  color: $body-color;
+  margin-bottom: 15px;
+
+  h2 {
+    font-size: 140%;
+    margin-bottom: 5px;
+  }
+
+  p {
+    padding: 10px 0;
+  }
+
+  ul {
+    list-style-position: inside;
+
+    li {
+      font-weight: $font-weight-bold;
+    }
+  }
+}
+
+.flash-wrapper {
+  bottom: 20px;
+  max-width: 320px;
+  position: fixed;
+  right: 20px;
+  z-index: 1000;
+}
+
+.flash {
+  padding: 16px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 120%;
+  color: $body-color;
+
+  &.notice {
+    background-color: rgba(theme-color-level(warning, -8), .95);
+  }
+  &.success {
+    background-color: rgba(theme-color-level(success, -10), .95);
+  }
+  &.error {
+    background-color: rgba(theme-color-level(danger, -8), .95);
+  }
+}
+
+.alert {
+  position: relative;
+  font-weight: normal !important;
+
+  a {
+    text-decoration: underline;
+  }
+
+  &.error a { color: lighten(theme-color("danger"), 8); }
+}

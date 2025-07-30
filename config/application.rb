@@ -45,5 +45,14 @@ module SolidusApi
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    config.to_prepare do
+      Dir.glob(Rails.root.join('app/**/*_decorator*.rb')).each do |c|
+        Rails.configuration.cache_classes ? require(c) : load(c)
+      end
+    end
+    
+    config.after_initialize do
+      StateMachines::Machine.ignore_method_conflicts = true if defined?(StateMachines)
+    end
   end
 end

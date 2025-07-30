@@ -27,5 +27,13 @@
 #       "yes": yup
 #       enabled: "ON"
 
-en:
-  hello: "Hello world"
+n:
+  spree:
+    hero_image: "Hero Image"
+    remove_hero_image: "Remove Hero Image"
+  activerecord:
+    attributes:
+      spree/store:
+        hero_image: "Hero Image"
+        remove_hero_image: "Remove Hero Image"
+

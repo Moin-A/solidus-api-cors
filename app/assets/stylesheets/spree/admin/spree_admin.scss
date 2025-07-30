@@ -1,0 +1,5 @@
+@import 'spree/backend/themes/classic';
+
+@warn "[Solidus] [Deprecation] " +
+  "importing or requiring `spree/backend/spree_admin` is deprecated and will be removed in the next major. " +
+  "Please use `spree/backend/themes/classic` instead.";

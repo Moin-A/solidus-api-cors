@@ -2,7 +2,7 @@
 module Spree
   module StoreDecorator
     extend ActiveSupport::Concern
-      included_do
+      included do
           has_one_attached :hero_image
           
           # Add validation for Active Storage

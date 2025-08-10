@@ -3,8 +3,17 @@
 module Api
   class ProductsController < BaseController
     def index
+      ActiveStorage::Current.url_options = {
+          host: request.host_with_port,
+          protocol: request.protocol
+        }
       @products = Spree::Product.includes(:variants, :taxons).available
-      render json: @products.as_json(include: [:variants, :taxons])
+      render json: @products.as_json(include: [:variants, :taxons,
+        {
+          images: {
+            methods: [:url]
+          }
+        }])
     end
 
     def show

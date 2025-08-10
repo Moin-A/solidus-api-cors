@@ -3,7 +3,7 @@
 module Api
   class BaseController < ApplicationController
     skip_before_action :verify_authenticity_token
-    before_action :authenticate_with_api_key
+    before_action :authenticate_with_api_key, unless: :skip_authentication?
 
     private
 
@@ -15,6 +15,14 @@ module Api
         render json: { error: "Unauthorized" }, status: :unauthorized
       end
     end
+    
+    def skip_authentication?
+      public_url = [
+        "api/products#index"
+      ]
+     
+      public_url.include?"#{params["controller"]}##{params["action"]}"
+    end  
 
     def current_user
       @current_user

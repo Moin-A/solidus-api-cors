@@ -1,4 +1,5 @@
 # app/models/spree/store_decorator.rb
+Spree::Store.prepend Spree::StoreDecorator
 module Spree
   module StoreDecorator
   # Using Active Storage (Rails 5.2+) - RECOMMENDED
@@ -37,5 +38,3 @@ module Spree
     end
   end 
 end
-
-Spree::Store.prepend Spree::StoreDecorator

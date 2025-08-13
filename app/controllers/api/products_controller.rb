@@ -4,21 +4,38 @@ module Api
   class ProductsController < BaseController
     def index
       ActiveStorage::Current.url_options = {
-          host: request.host_with_port,
-          protocol: request.protocol
-        }
-      @products = Spree::Product.includes(:variants, :taxons).available
+        host: request.host_with_port,
+        protocol: request.protocol
+      }
+      @products = Spree::Product.includes(:taxons, :taxons, master: :images).available
       render json: @products.as_json(include: [:variants, :taxons,
-        {
-          images: {
-            methods: [:url]
-          }
-        }])
+      {
+        images: {
+          methods: [:url]
+        }
+      }])
     end
 
     def show
-      @product = Spree::Product.find(params[:id])
-      render json: @product.as_json(include: [:variants, :taxons, :product_properties])
+      
+      @product = Spree::Product.friendly.find(params[:id])
+      product_json = @product.as_json(include: [
+        :variants, 
+        :taxons, 
+        :product_properties, 
+        :primary_taxon, 
+        :images
+      ]
+        )
+        product_json['images'] = @product.images.map do |image|
+          {
+            id: image.id,
+            alt: image.alt,
+            url: image.attachment.attached? ? url_for(image.attachment) : nil,
+            thumb_url: image.attachment.attached? ? url_for(image.attachment.variant(resize_to_limit: [200, 200])) : nil
+          }
+        end
+        render json: product_json
     end
 
     def variants

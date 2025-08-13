@@ -162,9 +162,9 @@ GEM
       factory_bot (~> 6.5)
       railties (>= 6.1.0)
     ffaker (2.24.0)
-    ffi (1.17.2)
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
+    ffi (1.17.2-x86_64-linux-gnu)
     flickwerk (0.3.5)
       railties (>= 7.0)
     font-awesome-rails (4.7.0.9)
@@ -244,7 +244,6 @@ GEM
     mime-types-data (3.2025.0722)
     mini_magick (4.13.2)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.25.5)
     monetize (1.13.0)
       money (~> 6.12)
@@ -261,13 +260,13 @@ GEM
       timeout
     net-smtp (0.5.1)
       net-protocol
+    newrelic_rpm (9.20.0)
     nio4r (2.7.4)
-    nokogiri (1.18.9)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.18.9-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.9-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-linux-gnu)
       racc (~> 1.4)
     omnes (0.2.2)
     orm_adapter (0.5.0)
@@ -587,6 +586,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   mini_magick
+  newrelic_rpm
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors

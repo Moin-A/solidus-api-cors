@@ -10,6 +10,7 @@ gem "sprockets-rails"
 
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
+gem 'mini_magick'
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
@@ -78,6 +79,7 @@ gem "responders"
 gem "solidus_support", ">= 0.12.0"
 gem "view_component", "~> 3.0"
 gem "tailwindcss-rails", "~> 3.0"
+gem 'newrelic_rpm'
 
 group :test do
   gem "capybara-screenshot", "~> 1.0"

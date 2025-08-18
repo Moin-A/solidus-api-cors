@@ -4,6 +4,7 @@ module Api
   class BaseController < ApplicationController
     skip_before_action :verify_authenticity_token
     before_action :authenticate_with_api_key, unless: :skip_authentication?
+    before_action :set_active_storage_current
 
     private
 
@@ -27,6 +28,13 @@ module Api
 
     def current_user
       @current_user
+    end
+
+    def set_active_storage_current
+      ActiveStorage::Current.url_options = {
+        host: request.host_with_port,
+        protocol: request.protocol
+      }
     end
   end
 end 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_27_141502) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_06_120156) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -156,6 +156,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_141502) do
     t.text "alt"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.index ["viewable_id", "viewable_type", "type"], name: "index_spree_assets_on_viewable_and_type"
+    t.index ["viewable_id", "viewable_type"], name: "index_spree_assets_on_viewable"
     t.index ["viewable_id"], name: "index_assets_on_viewable_id"
     t.index ["viewable_type", "type"], name: "index_assets_on_viewable_type_and_type"
   end
@@ -455,6 +457,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_141502) do
     t.string "country_iso", limit: 2
     t.index ["country_iso"], name: "index_spree_prices_on_country_iso"
     t.index ["variant_id", "currency"], name: "index_spree_prices_on_variant_id_and_currency"
+    t.index ["variant_id", "deleted_at"], name: "index_spree_prices_on_variant_id_and_deleted_at"
   end
 
   create_table "spree_product_option_types", id: :serial, force: :cascade do |t|
@@ -506,6 +509,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_141502) do
     t.datetime "discontinue_on", precision: nil
     t.integer "primary_taxon_id"
     t.index ["available_on"], name: "index_spree_products_on_available_on"
+    t.index ["deleted_at", "available_on"], name: "index_spree_products_on_deleted_at_and_available_on"
     t.index ["deleted_at"], name: "index_spree_products_on_deleted_at"
     t.index ["name"], name: "index_spree_products_on_name"
     t.index ["primary_taxon_id"], name: "index_spree_products_on_primary_taxon_id"
@@ -1220,6 +1224,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_27_141502) do
     t.string "gtin"
     t.string "condition"
     t.index ["position"], name: "index_spree_variants_on_position"
+    t.index ["product_id", "is_master"], name: "index_spree_variants_on_product_id_and_is_master"
     t.index ["product_id"], name: "index_spree_variants_on_product_id"
     t.index ["shipping_category_id"], name: "index_spree_variants_on_shipping_category_id"
     t.index ["sku"], name: "index_spree_variants_on_sku"

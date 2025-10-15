@@ -1,0 +1,117 @@
+# frozen_string_literal: true
+
+require 'spree/api/responders'
+
+module Spree
+  module Api
+    # Override the gem's BaseController to inherit from ApplicationController
+    class BaseController < ApplicationController
+      self.responder = Spree::Api::Responders::AppResponder
+      respond_to :json
+      protect_from_forgery unless: -> { request.format.json? }
+
+      include CanCan::ControllerAdditions
+      include ActiveStorage::SetCurrent
+      include Spree::Core::ControllerHelpers::Store
+      include Spree::Core::ControllerHelpers::Pricing
+      include Spree::Core::ControllerHelpers::StrongParameters
+
+      class_attribute :admin_line_item_attributes
+      self.admin_line_item_attributes = [:price, :variant_id, :sku]
+
+      class_attribute :admin_metadata_attributes
+      self.admin_metadata_attributes = [{ admin_metadata: {} }]
+
+      attr_accessor :current_api_user
+
+      before_action :load_user
+      before_action :authorize_for_order, if: proc { order_token.present? }
+      before_action :authenticate_user
+      before_action :load_user_roles
+
+      rescue_from ActionController::ParameterMissing, with: :parameter_missing_error
+      rescue_from ActiveRecord::RecordNotFound, with: :not_found
+      rescue_from CanCan::AccessDenied, with: :unauthorized
+      rescue_from Spree::Core::GatewayError, with: :gateway_error
+      rescue_from StateMachines::InvalidTransition, with: :invalid_transition
+
+      helper Spree::Api::ApiHelpers
+
+      private
+
+      def set_current_store
+        @current_store ||= Spree::Store.current(request.env['SERVER_NAME'])
+      end
+
+      def load_user
+        @current_api_user ||= Spree.user_class.find_by(spree_api_key: api_key.to_s)
+      end
+
+      def authenticate_user
+        unless @current_api_user
+          render json: { error: 'You must specify an API key.' }, status: :unauthorized
+        end
+      end
+
+      def load_user_roles
+        @current_user_roles = @current_api_user ? @current_api_user.spree_roles.pluck(:name) : []
+      end
+
+      def unauthorized(exception)
+        render json: { 
+          error: 'You are not authorized to perform that action.',
+          details: exception.message 
+        }, status: :unauthorized
+      end
+
+      def gateway_error(exception)
+        @order.errors.add(:base, exception.message)
+        invalid_resource!(@order)
+      end
+
+      def invalid_transition(exception)
+        @order.errors.add(:base, exception.message)
+        invalid_resource!(@order)
+      end
+
+      def api_key
+        cookies.encrypted[:spree_api_key] || request.headers['X-Spree-Token'] || params[:token]
+      end
+      alias :order_token :api_key
+
+      def not_found
+        render json: { error: 'The resource you were looking for could not be found.' }, status: :not_found
+      end
+
+      def parameter_missing_error(exception)
+        render json: { error: exception.message }, status: :unprocessable_entity
+      end
+
+      def invalid_resource!(resource)
+        @resource = resource
+        render json: { errors: @resource.errors.full_messages }, status: :unprocessable_entity
+      end
+
+      def authorize_for_order
+        # Skip for 'current' order - let individual controllers handle it
+        return if order_id == 'current'
+        
+        @order = Spree::Order.find_by(number: order_id) || Spree::Order.find_by(id: order_id)
+        authorize! :show, @order, order_token if @order
+      end
+
+      def order_id
+        params[:order_id] || params[:checkout_id] || params[:order_number]
+      end
+
+      def current_ability
+        Spree::Ability.new(current_api_user)
+      end
+
+      def invalid_api_key
+        render json: { error: 'Invalid API key' }, status: :unauthorized
+      end
+    end
+  end
+end
+

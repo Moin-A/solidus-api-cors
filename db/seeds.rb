@@ -9,3 +9,6 @@
 #   end
 Spree::Core::Engine.load_seed
 Spree::Auth::Engine.load_seed
+
+# Create customer role if it doesn't exist
+Spree::Role.find_or_create_by!(name: 'customer')

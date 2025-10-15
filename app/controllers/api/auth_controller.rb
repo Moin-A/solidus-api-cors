@@ -8,6 +8,14 @@ module Api
       user = Spree::User.find_by(email: params[:email])
       
       if user&.valid_password?(params[:password])
+        # Generate API key if it doesn't exist
+        user.generate_spree_api_key! unless user.spree_api_key
+        
+        # Assign customer role if user has no roles
+        if user.spree_roles.empty?
+          customer_role = Spree::Role.find_by(name: 'customer')
+          user.spree_roles << customer_role if customer_role
+        end
         # Set spree_api_key in a secure, HTTP-only cookie
         cookies.encrypted[:spree_api_key] = {
           value: user.spree_api_key,
@@ -38,6 +46,13 @@ module Api
         password_confirmation: params[:password_confirmation]
       )
       if user.save
+        # Generate API key if it doesn't exist
+        user.generate_spree_api_key! unless user.spree_api_key
+        
+        # Assign customer role
+        customer_role = Spree::Role.find_by(name: 'customer')
+        user.spree_roles << customer_role if customer_role && !user.spree_roles.include?(customer_role)
+        
         cookies.encrypted[:spree_api_key] = {
           value: user.spree_api_key,
           httponly: true,

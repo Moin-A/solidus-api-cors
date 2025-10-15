@@ -16,7 +16,7 @@ module Api
                           .where(spree_taxons: { permalink: params[:perma_link] })
                           .available
           end  
-        end 
+        end
         
         render json: @products.as_json(include: [:variants, :taxons, {
           images: { methods: [:url] }
@@ -72,12 +72,10 @@ module Api
               thumb_url: image.attachment.attached? ? url_for(image.attachment.variant(resize_to_limit: [200, 200])) : nil
             }
           end
-          expires_in 1.hour, public: true
           product_json 
       end 
       
-      
-        render json: @product_json
+      render json: @product_json
     end
 
     def variants

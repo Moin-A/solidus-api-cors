@@ -26,7 +26,7 @@ Spree.config do |config|
 
   # Uncomment and customize the following line to add custom permission sets
   # to a custom users role:
-  # config.roles.assign_permissions :role_name, ['Spree::PermissionSets::CustomPermissionSet']
+  config.roles.assign_permissions :customer, ['Spree::PermissionSets::DefaultCustomer']
 
   # Admin:
 

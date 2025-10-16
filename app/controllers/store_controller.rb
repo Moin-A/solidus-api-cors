@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class StoreController < Spree::BaseController
+class StoreController < Spree::Api::BaseController
   include Spree::Core::ControllerHelpers::Pricing
   include Spree::Core::ControllerHelpers::Order
   include Taxonomies

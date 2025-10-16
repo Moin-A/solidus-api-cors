@@ -3,8 +3,9 @@
 class CartsController < StoreController
   helper 'spree/products', 'orders'
 
-  respond_to :html
+  respond_to :html, :json
 
+  before_action :load_order, only: [:show]
   before_action :store_guest_token
   before_action :assign_order, only: :update
   # note: do not lock the #show action because that's where we redirect when we fail to acquire a lock
@@ -12,11 +13,52 @@ class CartsController < StoreController
 
   # Shows the current incomplete order from the session
   def show
-    @order = current_order(build_order_if_necessary: true)
+    @order ||= current_order(build_order_if_necessary: true)
     authorize! :edit, @order, cookies.signed[:guest_token]
-    if params[:id] && @order.number != params[:id]
-      flash[:error] = t('spree.cannot_edit_orders')
-      redirect_to cart_path
+    
+    respond_to do |format|
+      format.html do
+        if params[:id] && @order.number != params[:id]
+          flash[:error] = t('spree.cannot_edit_orders')
+          redirect_to cart_path
+        end
+      end
+      
+      format.json do
+        render json: @order.as_json(
+          include: {
+            line_items: {
+              include: {
+                variant: {
+                  include: {
+                    product: {
+                      include: {
+                        images: { methods: [:url] }
+                      }
+                    },
+                    images: { methods: [:url] }
+                  }
+                }
+              }
+            }
+          },
+          methods: [
+            :number,
+            :state,
+            :item_total,
+            :total,
+            :display_item_total,
+            :display_total,
+            :tax_total,
+            :display_tax_total,
+            :ship_total,
+            :display_ship_total,
+            :adjustment_total,
+            :display_adjustment_total,
+            :item_count
+          ]
+        )
+      end
     end
   end
 

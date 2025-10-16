@@ -4,6 +4,7 @@ require 'singleton'
 require 'spree/core/class_constantizer'
 
 module Spree
+   module Core
   # A class responsible for associating {Spree::Role} with a list of permission sets.
   #
   # Brought to application level from solidus_core gem for customization.
@@ -73,5 +74,6 @@ module Spree
       roles[name]
     end
   end
+ end 
 end
 

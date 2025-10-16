@@ -99,6 +99,7 @@ group :development, :test do
   gem "rubocop-performance", "~> 1.5"
   gem "rubocop-rails", "~> 2.3"
   gem "rubocop-rspec", "~> 2.0"
+  gem "rails-erd"
 end
 
 gem "solidus_paypal_commerce_platform", "~> 1.0"

@@ -37,6 +37,22 @@ module Spree
 
       helper Spree::Api::ApiHelpers
 
+
+      def load_order
+        if order_id == 'current'|| order_id.nil?
+          # Get or create the current user's active cart
+          @order = current_api_user.orders.incomplete.last || 
+                  Spree::Order.create!(
+                    user: current_api_user,
+                    store: Spree::Store.default
+                  )
+        else
+          @order = Spree::Order.includes(:line_items).find_by!(number: order_id)
+        end
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: 'Order not found' }, status: :not_found
+      end
+
       private
 
       def set_current_store
@@ -57,11 +73,8 @@ module Spree
         @current_user_roles = @current_api_user ? @current_api_user.spree_roles.pluck(:name) : []
       end
 
-      def unauthorized(exception)
-        render json: { 
-          error: 'You are not authorized to perform that action.',
-          details: exception.message 
-        }, status: :unauthorized
+      def unauthorized
+        render json: { error: 'You are not authorized to perform that action.' }, status: :unauthorized
       end
 
       def gateway_error(exception)

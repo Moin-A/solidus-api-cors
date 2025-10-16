@@ -45,27 +45,6 @@ module Spree
 
     private
 
-    def load_order
-      if order_id == 'current'
-        # Get or create the current user's active cart
-        # No authorization needed - users can always access their own cart
-        @order = current_api_user.orders.incomplete.last || 
-                 Spree::Order.create!(
-                   user: current_api_user,
-                   store: Spree::Store.default
-                 )
-      else
-        # Find specific order by number
-        @order = Spree::Order.includes(:line_items).find_by!(number: order_id)
-        # Authorize user can access this specific order
-        authorize! :update, @order, order_token
-      end
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: 'Order not found' }, status: :not_found
-    rescue CanCan::AccessDenied => e
-      render json: { error: 'You are not authorized to access this order', details: e.message }, status: :forbidden
-    end
-
     def find_line_item
       id = params[:id].to_i
       @order.line_items.detect { |line_item| line_item.id == id } ||

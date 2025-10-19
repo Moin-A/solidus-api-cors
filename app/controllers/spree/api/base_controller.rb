@@ -60,7 +60,13 @@ module Spree
       end
 
       def load_user
+        # Try API key first
         @current_api_user ||= Spree.user_class.find_by(spree_api_key: api_key.to_s)
+        
+        # Fall back to warden session for admin dashboard AJAX requests
+        if @current_api_user.nil? && respond_to?(:warden, true) && warden.authenticated?(:spree_user)
+          @current_api_user = warden.user(:spree_user)
+        end
       end
 
       def authenticate_user
@@ -123,6 +129,15 @@ module Spree
 
       def invalid_api_key
         render json: { error: 'Invalid API key' }, status: :unauthorized
+      end
+
+      # Pagination helper for Kaminari
+      def paginate(resource)
+        resource.page(params[:page]).per(params[:per_page] || default_per_page)
+      end
+
+      def default_per_page
+        Kaminari.config.default_per_page
       end
     end
   end

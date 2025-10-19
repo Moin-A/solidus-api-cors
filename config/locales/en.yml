@@ -27,10 +27,14 @@
 #       "yes": yup
 #       enabled: "ON"
 
-n:
+en:
   spree:
     hero_image: "Hero Image"
     remove_hero_image: "Remove Hero Image"
+  devise:
+    user_passwords:
+      send_instructions: "You will receive an email with instructions about how to reset your password in a few minutes."
+      user_not_found: "Email address not found."
   activerecord:
     attributes:
       spree/store:

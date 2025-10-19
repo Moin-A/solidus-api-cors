@@ -1,0 +1,46 @@
+# .erdconfig
+title: "Solidus E-commerce Core Diagram"
+filename: "erd-core.pdf"
+exclude: 
+  - ActiveStorage::*
+  - Spree::Promotion*
+  - Spree::Preference*
+  - Spree::StoreCredit*
+  - Spree::LogEntry
+  - Spree::Shipping*
+  - Spree::Adjustment
+  - Spree::PaymentMethod
+  - Spree::TaxRate
+  - Spree::Reimbursement
+  - Spree::Zone
+  - Spree::Country
+  - Spree::State
+  - Spree::Address
+  - Spree::User
+only:
+  - Spree::Product
+  - Spree::Variant
+  - Spree::Price
+  - Spree::OptionType
+  - Spree::OptionValue
+  - Spree::LineItem
+  - Spree::Order
+  - Spree::TaxCategory
+  - Spree::Taxon
+  - Spree::Taxonomy
+  - Spree::StockItem
+  - Spree::StockLocation
+  - Spree::Shipment
+attributes: true
+inheritance: true
+foreign_keys: true
+filename: "erd-detailed.pdf"
+notation: bachman          # more formal than 'simple'
+attributes: content         # show table attributes
+foreign_keys: true          # show FK relations
+indirect: true              # include indirect relationships
+inheritance: true          # don't draw STI hierarchy
+polymorphism: true          # show polymorphic links
+sort: true                  # alphabetically sort models
+cluster: true               # group by namespace (e.g., Spree)
+notation: simple

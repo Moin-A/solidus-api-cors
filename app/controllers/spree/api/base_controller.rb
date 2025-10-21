@@ -60,7 +60,6 @@ module Spree
       end
 
       def load_user
-        # Try API key first
         @current_api_user ||= Spree.user_class.find_by(spree_api_key: api_key.to_s)
         
         # Fall back to warden session for admin dashboard AJAX requests
@@ -94,8 +93,16 @@ module Spree
       end
 
       def api_key
-        cookies.encrypted[:spree_api_key] || request.headers['X-Spree-Token'] || params[:token]
+        # Check Authorization Bearer header first (standard OAuth format)
+        bearer_token = request.headers['Authorization']&.match(/Bearer (.+)/)&.[](1)
+        
+        # Fall back to other methods
+        bearer_token || 
+          request.headers['X-Spree-Token'] || 
+          params[:token] || 
+          cookies.encrypted[:spree_api_key]
       end
+
       alias :order_token :api_key
 
       def not_found

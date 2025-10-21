@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     resources :categories, only: [:index, :show] do
       member do
         get 'products'
+        get  'taxons'
       end
     end
 

@@ -3,9 +3,9 @@
 module Api
   class ProductsController < BaseController
     def index
-      
+      page = params[:page] || 1
       key = params[:taxon_id] || params[:perma_link]
-        cache_key = "products_index_taxon_id_#{key}"
+        cache_key = "products_index_taxon_#{key}_page_#{page}_per_#{page}"
         @products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do 
           if params[:taxon_id]
             Spree::Product.includes(:taxons, master: :images, variants: :images)
@@ -17,7 +17,9 @@ module Api
                           .available
           end  
         end
-        
+
+        @products = paginate(@products)    
+
         render json: @products.as_json(include: [:variants, :taxons, {
           images: { methods: [:url] }
         }])

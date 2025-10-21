@@ -15,6 +15,15 @@ module Api
       render json: @category.as_json(include: [:children, :products, :parent])
     end
 
+    def taxons
+      @category = Spree::Taxon.find_by(permalink: "categories/#{params[:id]}")
+      if @category.nil?
+        render json: {error: "Category notFound"}, status: :not_found
+      else
+        render json: @category.as_json
+      end
+    end
+
     def products
       @category = Spree::Taxon.find(params[:id])
       @products = @category.products.includes(:variants, :taxons)

@@ -56,8 +56,19 @@ Rails.application.routes.draw do
     resources :categories, only: [:index, :show] do
       member do
         get 'products'
+        get  'taxons'
       end
     end
+
+    namespace :auth do
+      get 'verification/confirm_email', to: 'verification#confirm_email'
+      post 'verification/verify_phone', to: 'verification#verify_phone'
+      post 'verification/resend_confirmation', to: 'verification#resend_confirmation'
+      post 'verification/resend_phone', to: 'verification#resend_phone'
+      post '/password/change', to: 'password#update', as: :change_password
+      post '/password/recover', to: 'password#create', as: :reset_password
+    end
+
     
     # Cart operations
     get 'cart', to: 'cart#show'

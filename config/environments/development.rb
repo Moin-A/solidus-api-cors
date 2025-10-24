@@ -79,4 +79,18 @@ Rails.application.configure do
   config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
   config.action_controller.perform_caching = true
   config.action_view.cache_template_loading = true
+  
+  # AWS SES SMTP Configuration
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+
+  config.action_mailer.smtp_settings = {
+    address:              'email-smtp.eu-north-1.amazonaws.com',
+    port:                 587,
+    user_name:            'AKIAVO3V6QXM4FFZR5UY',
+    password:             'BP9URS+oSyJUNF0YfrxC8MW+vFCr+2WUxACg23/IJU4w',
+    authentication:       :login,
+    enable_starttls_auto: true
+  }
 end

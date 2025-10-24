@@ -108,7 +108,6 @@ module Spree
 
       first_one = user_addresses.empty?
       user_address = prepare_user_address(new_address)
-
       if address_attributes[:id].present? && new_address.id != address_attributes[:id]
         if ship_address&.id == address_attributes[:id].to_i
           user_addresses.mark_default(user_address, address_type: :shipping)

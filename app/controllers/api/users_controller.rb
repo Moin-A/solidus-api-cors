@@ -26,16 +26,26 @@ module Api
 
     def addresses
       @addresses = current_user.addresses
-      render json: @addresses.as_json
+      
+      render json:  @addresses.as_json(
+          include: {user_address: {only: [:default_billing], methods: [:default_shipping]}}
+        )
     end
 
     def create_address
-      @address = current_user.addresses.build(address_params)
+      @address = current_user.save_in_address_book(
+        address_params,
+        default_params,      # default = false (set to true if this should be the default address)
+        :billing   # address_type (:shipping or :billing)
+      )
       
-      if @address.save
-        render json: @address.as_json, status: :created
+      if @address&.persisted?
+        
+        render json: @address.as_json(
+          include: {user_address: {only: [:default_billing], methods: [:default_shipping]}}
+        ), status: :created
       else
-        render json: { errors: @address.errors.full_messages }, status: :unprocessable_entity
+        render json: { errors: @address&.errors&.full_messages || ["Invalid address"] }, status: :unprocessable_entity
       end
     end
 
@@ -50,7 +60,15 @@ module Api
     end
 
     def address_params
-      params.require(:address).permit(:firstname, :lastname, :address1, :address2, :city, :state_id, :zipcode, :country_id, :phone)
+      permitted = params.require(:address).permit( :address1, :address2, :city, :state_id, :zipcode, :country_id, :phone, :name).except(:address_type, :default)
+    end
+
+    def address_type_params
+      params.require(:address).permit(:address_type)
+    end
+
+     def default_params
+      params.require(:address).permit(:default)
     end
 
     def current_user

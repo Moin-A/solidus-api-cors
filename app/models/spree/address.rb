@@ -17,6 +17,7 @@ module Spree
     validates :address1, :city, :country_id, :name, presence: true
     validates :zipcode, presence: true, if: :require_zipcode?
     validates :phone, presence: true, if: :require_phone?
+    has_one :user_address, class_name: "Spree::UserAddress",foreign_key: :address_id,  inverse_of: :address
 
     validate do
       self.class.state_validator_class.new(self).perform

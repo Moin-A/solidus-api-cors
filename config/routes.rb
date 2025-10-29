@@ -81,6 +81,20 @@ Rails.application.routes.draw do
     # Orders
     resources :orders, only: [:index, :show, :create, :update, :destroy]
     
+    # Checkouts (under spree namespace)
+    namespace :spree do
+      namespace :api do
+        resources :checkouts, only: [] do
+          member do
+            put :next
+            put :advance
+            put :update
+            put :complete
+          end
+        end
+      end
+    end
+    
     # User profile and addresses
     get 'profile', to: 'users#profile'
     get 'addresses', to: 'users#addresses'

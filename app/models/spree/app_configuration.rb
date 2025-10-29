@@ -140,7 +140,7 @@ module Spree
     # @!attribute [rw] currency
     #   Currency to use by default when not defined on the site (default: +"USD"+)
     #   @return [String] ISO 4217 Three letter currency code
-    preference :currency, :string, default: "USD"
+    preference :currency, :string, default: "INR"
 
     # @!attribute [rw] customer_returns_per_page
     #   @return [Integer] Customer returns to show per-page in the admin (default: +15+)

@@ -42,11 +42,5 @@ module Api
     def order_params
       params.require(:order).permit(:email, :special_instructions)
     end
-
-    def current_user
-      # This would be implemented based on your authentication strategy
-      # For now, we'll use the first user or implement token-based auth
-      Spree::User.first
-    end
   end
 end 

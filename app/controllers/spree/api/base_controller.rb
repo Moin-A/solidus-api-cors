@@ -146,6 +146,25 @@ module Spree
       def default_per_page
         Kaminari.config.default_per_page
       end
+
+      # Lock order to prevent concurrent modifications
+      def lock_order
+        Spree::OrderMutex.with_lock!(@order) { yield }
+      rescue Spree::OrderMutex::LockFailed => error
+        render plain: error.message, status: :conflict
+      end
+
+      # Handle insufficient stock errors
+      def insufficient_stock_error(exception)
+        logger.error "insufficient_stock_error #{exception.inspect}"
+        render(
+          json: {
+            errors: [I18n.t(:quantity_is_not_available, scope: "spree.api.order")],
+            type: 'insufficient_stock'
+          },
+          status: :unprocessable_entity
+        )
+      end
     end
   end
 end

@@ -74,11 +74,11 @@ class CheckoutsController < CheckoutBaseController
     case params[:state].to_sym
     when :address
       massaged_params.require(:order).permit(
-        permitted_checkout_address_attributes
+        *permitted_checkout_address_attributes
       )
     when :delivery
       massaged_params.require(:order).permit(
-        permitted_checkout_delivery_attributes
+        *permitted_checkout_delivery_attributes
       )
     when :payment
       if @order.covered_by_store_credit?
@@ -86,11 +86,11 @@ class CheckoutsController < CheckoutBaseController
       else
         massaged_params.require(:order)
       end.permit(
-        permitted_checkout_payment_attributes
+        *permitted_checkout_payment_attributes
       )
     else
       massaged_params.fetch(:order, {}).permit(
-        permitted_checkout_confirm_attributes
+        *permitted_checkout_confirm_attributes
       )
     end
   end
@@ -201,5 +201,82 @@ class CheckoutsController < CheckoutBaseController
     return order_path(@order) if spree_current_user
 
     token_order_path(@order, @order.guest_token)
+  end
+
+  # Override gem's permitted_checkout_address_attributes
+  def permitted_checkout_address_attributes
+    [
+      :email,
+      bill_address_attributes: permitted_address_attributes,
+      ship_address_attributes: permitted_address_attributes
+    ]
+  end
+
+  # Override gem's permitted_checkout_delivery_attributes
+  def permitted_checkout_delivery_attributes
+    [
+      :special_instructions,
+      shipments_attributes: [
+        :id,
+        :selected_shipping_rate_id
+      ]
+    ]
+  end
+
+  # Override gem's permitted_checkout_payment_attributes
+  def permitted_checkout_payment_attributes
+    [
+      :coupon_code,
+      :payments_attributes => [
+        :payment_method_id,
+        :amount,
+        { source_attributes: permitted_payment_source_attributes }
+      ]
+    ]
+  end
+
+  # Override gem's permitted_checkout_confirm_attributes
+  def permitted_checkout_confirm_attributes
+    [
+      :special_instructions,
+      :coupon_code
+    ]
+  end
+
+  # Define the permitted attributes for an individual address
+  def permitted_address_attributes
+    [
+      :id,
+      :name,
+      :address1,
+      :address2,
+      :city,
+      :zipcode,
+      :phone,
+      :state_id,
+      :state_name,
+      :country_id,
+      :company
+    ]
+  end
+
+  # Define the permitted attributes for payment sources (credit cards, etc.)
+  def permitted_payment_source_attributes
+    [
+      :gateway_payment_profile_id,
+      :last_digits,
+      :month,
+      :year,
+      :cc_type,
+      :name,
+      :number,
+      :verification_value,
+      :address1,
+      :address2,
+      :city,
+      :state_id,
+      :zipcode,
+      :country_id
+    ]
   end
 end

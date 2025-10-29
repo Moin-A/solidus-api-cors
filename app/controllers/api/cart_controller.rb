@@ -58,10 +58,5 @@ module Api
     def set_cart
       @cart = Spree::Order.incomplete.find_or_create_by(user: current_user, store: Spree::Store.default)
     end
-
-    def current_user
-      # This would be implemented based on your authentication strategy
-      Spree::User.first
-    end
   end
 end 

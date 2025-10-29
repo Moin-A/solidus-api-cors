@@ -35,8 +35,8 @@ module Api
     def create_address
       @address = current_user.save_in_address_book(
         address_params,
-        default_params,      # default = false (set to true if this should be the default address)
-        :billing   # address_type (:shipping or :billing)
+        params[:address][:default] == true || params[:address][:default] == "true",  # Convert to boolean
+        params[:address][:address_type]&.to_sym || :shipping  # Convert to symbol
       )
       
       if @address&.persisted?
@@ -60,20 +60,7 @@ module Api
     end
 
     def address_params
-      permitted = params.require(:address).permit( :address1, :address2, :city, :state_id, :zipcode, :country_id, :phone, :name).except(:address_type, :default)
-    end
-
-    def address_type_params
-      params.require(:address).permit(:address_type)
-    end
-
-     def default_params
-      params.require(:address).permit(:default)
-    end
-
-    def current_user
-      # This would be implemented based on your authentication strategy
-      Spree::User.first
+      params.require(:address).permit(:address1, :address2, :city, :state_id, :zipcode, :country_id, :phone, :name)
     end
   end
 end 

@@ -78,6 +78,10 @@ module Spree
         @current_user_roles = @current_api_user ? @current_api_user.spree_roles.pluck(:name) : []
       end
 
+      def current_user
+        @current_api_user
+      end
+
       def unauthorized
         render json: { error: 'You are not authorized to perform that action.' }, status: :unauthorized
       end

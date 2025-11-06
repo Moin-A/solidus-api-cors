@@ -21,6 +21,11 @@ Spree.config do |config|
   config.image_attachment_module = 'Spree::Image::ActiveStorageAttachment'
   config.taxon_attachment_module = 'Spree::Taxon::ActiveStorageAttachment'
 
+  # Disable stock splitters to ensure all items ship in a single shipment
+  # By default, Solidus splits shipments by shipping_category and backorder status
+  # Setting this to empty array means all items will be in one shipment
+  config.environment.stock_splitters = []
+
   # Defaults
   # Permission Sets:
 

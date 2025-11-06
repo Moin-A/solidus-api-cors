@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module Api
-  class OrdersController < BaseController
+  class OrdersController < Spree::Api::BaseController
     before_action :set_order, only: [:show, :update, :destroy]
+    before_action :load_order, only: [:available_shipping_methods]
 
     def index
       @orders = Spree::Order.includes(:line_items, :shipments, :payments)
@@ -12,7 +13,29 @@ module Api
     end
 
     def show
-      render json: @order.as_json(include: [:line_items, :shipments, :payments, :addresses])
+      render json: @order.as_json(include: [
+        :line_items, 
+        :bill_address, 
+        :ship_address,
+        { shipments: { include: :shipping_rates } },
+        :payments
+      ])
+    end
+
+    # GET /api/orders/:id/available_shipping_methods
+    # Returns available shipping methods with rates for the order
+    def available_shipping_methods
+      if @order.shipments.empty?
+        return render json: { 
+          error: "Order must have a shipping address before shipping methods can be determined" 
+        }, status: :unprocessable_entity
+      end
+
+      shipping_methods = []
+      render json: @order.as_json(include: [
+        { shipments: { include: { shipping_methods: { include: :shipping_rates } } } }
+      ])
+
     end
 
     def create

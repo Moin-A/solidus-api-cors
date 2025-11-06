@@ -79,7 +79,11 @@ Rails.application.routes.draw do
     get 'cart/checkout', to: 'cart#checkout'
     
     # Orders
-    resources :orders, only: [:index, :show, :create, :update, :destroy]
+    resources :orders, only: [:index, :show, :create, :update, :destroy] do
+      member do
+        get 'available_shipping_methods'
+      end
+    end
     
     # Checkouts (under spree namespace)
     namespace :spree do

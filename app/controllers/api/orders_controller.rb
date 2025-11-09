@@ -56,7 +56,7 @@ module Api
       render json: { message: 'Order deleted successfully' }
     end
 
-    private
+  private
 
     def set_order
       @order = Spree::Order.find(params[:id])

@@ -5,13 +5,16 @@ module Api
     def products
       query = params[:q]
       category_id = params[:category_id]
-      min_price = params[:min_price]
-      max_price = params[:max_price]
+      min_price = params[:min_price] unless params[:price_range].blank?
+      max_price = params[:max_price] unless params[:price_range].blank?
+      page = params[:page] || 1
+      key = params[:perma_link]
+      min_price, max_price = params[:price_range].split(",").map(&:to_i) if params[:price_range].present?
       sort_by = params[:sort_by] || 'name'
       sort_order = params[:sort_order] || 'asc'
-
-      @products = Spree::Product.includes(:variants, :taxons, :images)
-                                .available
+      # Apply price filter
+      # binding.pry
+      @products = Spree::Product.includes(:taxons, master: :images, variants: :images).where(spree_taxons: { permalink: params[:perma_link] }).available
 
       # Apply search query
       if query.present?
@@ -24,11 +27,13 @@ module Api
         @products = @products.joins(:taxons).where(spree_taxons: { id: category_id })
       end
 
+
       # Apply price filter
+      # binding.pry
+
       if min_price.present? || max_price.present?
-        @products = @products.joins(:variants)
-        @products = @products.where("spree_variants.price >= ?", min_price) if min_price.present?
-        @products = @products.where("spree_variants.price <= ?", max_price) if max_price.present?
+        @products = @products.joins(master: :prices).where("spree_prices.amount >= ?", min_price) if min_price.present?
+        @products = @products.joins(master: :prices).where("spree_prices.amount <= ?", max_price) if max_price.present?
       end
 
       # Apply sorting
@@ -45,7 +50,19 @@ module Api
       @products = @products.page(params[:page]).per(params[:per_page] || 20)
 
       render json: {
-        products: @products.as_json(include: [:variants, :taxons, :images]),
+        products: @products.as_json(include: 
+          {
+            taxons: {},            
+            master:  {
+                include: {
+                  default_price: { only: [:amount, :currency] }
+                }
+              },
+            
+              images: { methods: [:url] }
+            
+          }
+        ),
         pagination: {
           current_page: @products.current_page,
           total_pages: @products.total_pages,

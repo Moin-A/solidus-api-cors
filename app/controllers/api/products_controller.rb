@@ -20,10 +20,25 @@ module Api
 
         @products = paginate(@products)    
 
-        render json: @products.as_json(include: [:variants, :taxons, {
-          images: { methods: [:url] }
-        }])
-    end
+        render json: {
+          products: @products.as_json(
+            include: {             
+              taxons:  {},
+              master:  {
+                include: {
+                  default_price: { only: [:amount, :currency] }
+                }
+              },
+              images:  { methods: [:url] }
+            }
+          ),
+          pagination: {
+            current_page: @products.current_page,
+            total_pages:  @products.total_pages,
+            total_count:  @products.total_count
+          }
+        }
+      end
 
     def show
       

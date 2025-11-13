@@ -3,7 +3,7 @@
 module Api
   class OrdersController < Spree::Api::BaseController
     before_action :set_order, only: [:show, :update, :destroy]
-    before_action :load_order, only: [:available_shipping_methods]
+    before_action :load_order, only: [:available_shipping_methods, :show]
 
     def index
       @orders = Spree::Order.includes(:line_items, :shipments, :payments)
@@ -14,11 +14,11 @@ module Api
 
     def show
       render json: @order.as_json(include: [
-        :line_items, 
+        {line_items: { include: { product: { include: :images } } }}, 
         :bill_address, 
         :ship_address,
         { shipments: { include: :shipping_rates } },
-        :payments
+        { payments: { include: :payment_method } }
       ])
     end
 
@@ -59,7 +59,7 @@ module Api
   private
 
     def set_order
-      @order = Spree::Order.find(params[:id])
+      @order = Spree::Order.find(params[:id]) unless params[:id] == 'current'
     end
 
     def order_params

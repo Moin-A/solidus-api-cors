@@ -131,7 +131,7 @@ module Spree
       end
 
       def order_id
-        params[:order_id] || params[:checkout_id] || params[:order_number]
+        params[:order_id] || params[:checkout_id] || params[:order_number] || params[:id]
       end
 
       def current_ability

@@ -21,7 +21,13 @@ module Spree
       assign_order_attributes
       assign_payments_attributes
 
-      order.save
+      # Set flag to prevent invalidate_old_payments from running during save (prevents recursion)
+      order.instance_variable_set(:@_saving, true)
+      begin
+        order.save
+      ensure
+        order.instance_variable_set(:@_saving, false)
+      end
     end
 
     alias_method :apply, :call

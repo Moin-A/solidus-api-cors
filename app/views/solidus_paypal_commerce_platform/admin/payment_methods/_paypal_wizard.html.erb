@@ -1,0 +1,16 @@
+<a
+  target="_blank"
+  data-paypal-onboard-complete='SolidusPaypalCommercePlatform_onboardCallback'
+  data-paypal-button="true"
+  href="<%= wizard.button_url %>"
+>
+  <button class="btn btn-primary">
+    <%= t('sign_up_for_paypal') %>
+  </button>
+</a>
+<script id="paypal-js" src="https://<%= SolidusPaypalCommercePlatform.config.env_domain %>/webapps/merchantboarding/js/lib/lightbox/partner.js"></script>
+
+<script>
+  window.SolidusPaypalCommercePlatform.nonce = "<%= wizard.nonce %>"
+  window.SolidusPaypalCommercePlatform_onboardCallback = SolidusPaypalCommercePlatform.onboardCallback
+</script>

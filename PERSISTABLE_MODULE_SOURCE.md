@@ -891,3 +891,26 @@ calc.reload.preferred_amount             # => BigDecimal("10.99")
 **Source:** Solidus Core 4.5.1  
 **Location:** `/Users/apple/.rbenv/versions/3.1.2/lib/ruby/gems/3.1.0/gems/solidus_core-4.5.1/lib/spree/preferences/`
 
+
+---
+
+## Quick Reference: Using `serialize` for Your Own Models
+
+You can apply the same pattern outside of Solidus preferences. If your Active Record table has a single column that stores YAML (or JSON), call `serialize` on it so Rails automatically converts the stored text to a richer Ruby object:
+
+```ruby
+class Calculator < ApplicationRecord
+  serialize :some_preference, Hash, coder: YAML
+end
+```
+
+Now whenever you load a row:
+
+```ruby
+tool = Calculator.first
+puts tool.some_preference.class # => Hash
+```
+
+Any changes you make to `tool.some_preference` are YAML-dumped back into the column when you save. This is exactly what `Spree::Preferences::Persistable` sets up for the `preferences` column on Solidus models.
+
+> **Note:** YAML is just structured text (similar to JSON in spirit). When Rails serializes a hash to YAML, it stores that text in the column. On reload, the YAML is parsed back into the original Ruby object.

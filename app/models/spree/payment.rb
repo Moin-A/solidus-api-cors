@@ -191,6 +191,10 @@ module Spree
     end
 
     def invalidate_old_payments
+      # Prevent infinite recursion: skip if order is currently being saved
+      # This prevents recursion when called from within order.save (e.g., from OrderUpdateAttributes)
+      return if order.instance_variable_get(:@_saving)
+      
       if !store_credit? && !['invalid', 'failed'].include?(state)
         order.payments.select { |payment|
           payment.state == 'checkout' && !payment.store_credit? && payment.id != id

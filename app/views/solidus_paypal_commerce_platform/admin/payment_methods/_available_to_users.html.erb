@@ -1,0 +1,6 @@
+<% if @payment_method.type == "SolidusPaypalCommercePlatform::PaymentMethod" %>
+  <%= f.check_box :available_to_users %>
+  <%= f.field_hint :available_to_users %>
+<% else %>
+  <%= f.check_box :available_to_users %>
+<% end %>

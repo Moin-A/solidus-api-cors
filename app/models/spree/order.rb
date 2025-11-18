@@ -426,6 +426,10 @@ module Spree
       %w(paid credit_owed).include?(payment_state)
     end
 
+    def cod?
+      payments.joins(:payment_method).select("spree_payment_methods.name").pluck("spree_payment_methods.name").include?("Cash on Delivery")
+    end
+
     def available_payment_methods
       @available_payment_methods ||= Spree::PaymentMethod
         .active

@@ -37,3 +37,7 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 app/assets/builds/solidus_admin/
+# SSH encryption files (DO NOT COMMIT)
+encrypted-key.enc
+.circleci-env-vars.txt
+encrypt-ssh-key.sh

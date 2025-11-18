@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_18_110558) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -102,6 +102,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "name"
+    t.string "vat_id"
+    t.string "email"
+    t.integer "reverse_charge_status", default: 0, null: false, comment: "Enum values: 0 = disabled, 1 = enabled, 2 = not_validated"
     t.index ["country_id"], name: "index_spree_addresses_on_country_id"
     t.index ["firstname"], name: "index_addresses_on_firstname"
     t.index ["lastname"], name: "index_addresses_on_lastname"
@@ -199,7 +202,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
     t.boolean "states_required", default: false
     t.datetime "updated_at"
     t.datetime "created_at"
-    t.index ["iso"], name: "index_spree_countries_on_iso"
+    t.index ["iso"], name: "index_spree_countries_on_iso", unique: true
   end
 
   create_table "spree_credit_cards", id: :serial, force: :cascade do |t|
@@ -932,6 +935,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
     t.boolean "fulfillable", default: true, null: false
     t.string "code"
     t.boolean "check_stock_on_transfer", default: true
+    t.string "email"
     t.index ["country_id"], name: "index_spree_stock_locations_on_country_id"
     t.index ["state_id"], name: "index_spree_stock_locations_on_state_id"
   end
@@ -1039,6 +1043,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
     t.string "cart_tax_country_iso"
     t.string "available_locales"
     t.string "bcc_email"
+    t.integer "reverse_charge_status", default: 0, null: false, comment: "Enum values: 0 = disabled, 1 = enabled, 2 = not_validated"
     t.index ["code"], name: "index_spree_stores_on_code"
     t.index ["default"], name: "index_spree_stores_on_default"
   end
@@ -1269,11 +1274,29 @@ ActiveRecord::Schema[7.1].define(version: 2025_10_16_142237) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "spree_addresses", "spree_countries", column: "country_id", on_delete: :restrict
+  add_foreign_key "spree_addresses", "spree_states", column: "state_id", on_delete: :restrict
+  add_foreign_key "spree_adjustments", "spree_adjustment_reasons", column: "adjustment_reason_id", on_delete: :restrict
+  add_foreign_key "spree_customer_returns", "spree_stock_locations", column: "stock_location_id", on_delete: :restrict
   add_foreign_key "spree_orders_promotions", "spree_orders", column: "order_id", on_delete: :cascade, validate: false
+  add_foreign_key "spree_prices", "spree_countries", column: "country_iso", primary_key: "iso", on_delete: :restrict
+  add_foreign_key "spree_product_option_types", "spree_option_types", column: "option_type_id"
+  add_foreign_key "spree_product_option_types", "spree_products", column: "product_id"
+  add_foreign_key "spree_product_properties", "spree_products", column: "product_id"
+  add_foreign_key "spree_product_properties", "spree_properties", column: "property_id"
+  add_foreign_key "spree_products", "spree_shipping_categories", column: "shipping_category_id"
   add_foreign_key "spree_products", "spree_taxons", column: "primary_taxon_id"
+  add_foreign_key "spree_products_taxons", "spree_products", column: "product_id"
+  add_foreign_key "spree_products_taxons", "spree_taxons", column: "taxon_id"
   add_foreign_key "spree_promotion_code_batches", "spree_promotions", column: "promotion_id"
   add_foreign_key "spree_promotion_codes", "spree_promotion_code_batches", column: "promotion_code_batch_id"
+  add_foreign_key "spree_roles_users", "spree_roles", column: "role_id"
+  add_foreign_key "spree_shipping_method_categories", "spree_shipping_categories", column: "shipping_category_id"
+  add_foreign_key "spree_shipping_method_categories", "spree_shipping_methods", column: "shipping_method_id"
+  add_foreign_key "spree_states", "spree_countries", column: "country_id", on_delete: :cascade
   add_foreign_key "spree_tax_rate_tax_categories", "spree_tax_categories", column: "tax_category_id"
   add_foreign_key "spree_tax_rate_tax_categories", "spree_tax_rates", column: "tax_rate_id"
+  add_foreign_key "spree_user_addresses", "spree_addresses", column: "address_id"
+  add_foreign_key "spree_variant_property_rules", "spree_products", column: "product_id"
   add_foreign_key "spree_wallet_payment_sources", "spree_users", column: "user_id"
 end

@@ -4,6 +4,7 @@
   ).items.sort_by { |item| item.line_item.created_at }
 %>
 
+
 <div id="<%= "shipment_#{shipment.id}" %>" class="js-shipment-edit" data-hook="admin_shipment_form">
   <fieldset class="no-border-bottom">
     <legend align="center" class="stock-location" data-hook="stock-location">
@@ -13,6 +14,7 @@
       <%= t('spree.package_from') %>
       <strong class="stock-location-name" data-hook="stock-location-name">'<%= shipment.stock_location.name %>'</strong>
     </legend>
+
 
     <% if shipment.ready? && can?(:ship, shipment) %>
       <%= form_tag("#", class: "admin-ship-shipment") do %>
@@ -24,6 +26,7 @@
       <% end %>
     <% end %>
   </fieldset>
+
 
   <table class="stock-contents shipment index" data-hook="stock-contents">
     <colgroup>
@@ -66,3 +69,10 @@
     </tbody>
   </table>
 </div>
+
+
+<% if shipment.pending? %>
+  <%=form_tag(admin_mark_shipment_ready_path(shipment.number), method: :post) do %>
+   <%= submit_tag :mark_as_ready %>
+  <% end %>
+<% end %>  

@@ -1,17 +1,62 @@
 version: 2.1
 
 jobs:
-  say-hello:
+  test-ssh:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
+      
+      # Decrypt SSH key from CircleCI environment variables
       - run:
-          name: Say hello
-          command: echo "Hello from CircleCI"
+          name: Decrypt SSH key
+          command: |
+            mkdir -p ~/.ssh
+            echo "$ENCRYPTED_SSH_KEY" | base64 -d | \
+              openssl enc -aes-256-cbc -d -pbkdf2 -k "$ENCRYPTION_KEY" \
+              > ~/.ssh/kamal-deploy-key.pem
+            chmod 600 ~/.ssh/kamal-deploy-key.pem
+      
+      # Test SSH connection
+      - run:
+          name: Test SSH connection to EC2
+          command: |
+            ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
+            ssh -i ~/.ssh/kamal-deploy-key.pem ec2-user@$EC2_IP "hostname && whoami"
 
 workflows:
-  say-hello-workflow:
+  test-ssh-workflow:
     jobs:
-      - say-hello
+      - test-ssh
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# REQUIRED ENVIRONMENT VARIABLES (Add in CircleCI Project Settings):
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+# 1. ENCRYPTION_KEY
+#    - The key generated with: openssl rand -base64 32
+#    - Example: sm43jmDDDcq7iZ8ht1Clkds2tmh09WgdzuXlXwwnKIM=
+#
+# 2. ENCRYPTED_SSH_KEY
+#    - The base64 encoded encrypted PEM file
+#    - Generate with:
+#      openssl enc -aes-256-cbc -salt -pbkdf2 \
+#        -in ~/.ssh/kamal-deploy-key.pem \
+#        -out encrypted-key.enc \
+#        -k "$ENCRYPTION_KEY"
+#      base64 -i encrypted-key.enc
+#    - Paste the entire base64 output
+#
+# 3. EC2_IP
+#    - Your EC2 instance public IP address
+#    - Example: 13.53.125.253
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TO ADD ENVIRONMENT VARIABLES:
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+# 1. Go to: https://app.circleci.com/settings/project/github/YOUR_USERNAME/solidus-api-cors/environment-variables
+# 2. Click "Add Environment Variable"
+# 3. Add each variable listed above
+#
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -8,7 +8,9 @@ Rails.application.routes.draw do
 
   Spree::Core::Engine.routes.draw do
     namespace :admin do
-      resource :general_settings, only: [:show, :edit, :update]
+      resource :general_settings, only: [:show, :edit, :update] 
+        post 'shipments/:shipment_number/mark_ready', to: 'orders#mark_ready', as: :mark_shipment_ready
+        post 'shipments/:shipment_number/ship', to: 'orders#ship_shipment', as: :ship_shipment
     end
   end
   # This line mounts Solidus's routes at the root of your application.

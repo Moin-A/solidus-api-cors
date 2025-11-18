@@ -37,6 +37,7 @@ module Spree
 
       helper Spree::Api::ApiHelpers
 
+      helper_method :current_user_roles
 
       def load_order
         if order_id == 'current'|| order_id.nil?
@@ -76,6 +77,10 @@ module Spree
 
       def load_user_roles
         @current_user_roles = @current_api_user ? @current_api_user.spree_roles.pluck(:name) : []
+      end
+
+      def current_user_roles
+        @current_user_roles || []
       end
 
       def current_user

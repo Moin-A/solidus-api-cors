@@ -16,7 +16,7 @@ module Spree
         raise ArgumentError, "order must be supplied" if order.nil?
 
         # limit the maximum lock time just in case a lock is somehow left in place accidentally
-        expired.where(order:).delete_all
+        where(order:).delete_all
 
         begin
           order_mutex = create!(order:)

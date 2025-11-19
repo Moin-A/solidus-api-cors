@@ -73,6 +73,17 @@ jobs:
       - run:
           name: Deploy to EC2
           command: |
+            # Verify environment variables are set
+            echo "Checking environment variables..."
+            [ -z "$KAMAL_REGISTRY_PASSWORD" ] && echo "⚠️  KAMAL_REGISTRY_PASSWORD is not set" || echo "✅ KAMAL_REGISTRY_PASSWORD is set"
+            [ -z "$RAILS_MASTER_KEY" ] && echo "⚠️  RAILS_MASTER_KEY is not set" || echo "✅ RAILS_MASTER_KEY is set"
+            [ -z "$POSTGRES_PASSWORD" ] && echo "⚠️  POSTGRES_PASSWORD is not set" || echo "✅ POSTGRES_PASSWORD is set"
+            
+            # Test SSH connection before deploying
+            echo "Testing SSH connection..."
+            ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "echo 'SSH connection successful'" || echo "❌ SSH connection failed"
+            
+            # Deploy with Kamal
             kamal deploy
 
 workflows:

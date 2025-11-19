@@ -10,7 +10,9 @@ servers:
     hosts:
       - 13.53.125.253
     options:
-      "add-host": "host.docker.internal:host-gateway"  
+      "add-host": "host.docker.internal:host-gateway"
+    ssh:
+      user: ec2-user  
   # job:
   #   hosts:
   #     - 192.168.0.1

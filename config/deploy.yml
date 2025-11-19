@@ -4,6 +4,10 @@ service: solidus-api-cors
 # Name of the container image.
 image: moindev/solidus-api-cors
 
+# SSH configuration (TOP LEVEL)
+ssh:
+  user: ec2-user
+
 # Deploy to these servers.
 servers:
   web:
@@ -11,8 +15,6 @@ servers:
       - 13.53.125.253
     options:
       "add-host": "host.docker.internal:host-gateway"
-    ssh:
-      user: ec2-user  
   # job:
   #   hosts:
   #     - 192.168.0.1

@@ -92,7 +92,17 @@ jobs:
           command: |
              ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "sudo systemctl stop httpd || true && sudo systemctl stop nginx || true"
 
-      # Step 8: Deploy App with Kamal
+      # Step 8: Boot Accessories (Database & Redis)
+      - run:
+          name: Boot Database and Redis
+          command: |
+            echo "Booting database accessory..."
+            kamal accessory boot db || echo "Database might already be running"
+            
+            echo "Booting redis accessory..."
+            kamal accessory boot redis || echo "Redis might already be running"
+
+      # Step 9: Deploy App with Kamal
       - run:
           name: Run Kamal Deploy
           command: |

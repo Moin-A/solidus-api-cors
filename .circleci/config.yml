@@ -96,6 +96,11 @@ jobs:
       - run:
           name: Run Kamal Deploy
           command: |
+            # Debug: Check if variables exist (do not print values)
+            [ -z "$RAILS_MASTER_KEY" ] && echo "❌ RAILS_MASTER_KEY is missing!" || echo "✅ RAILS_MASTER_KEY is found"
+            [ -z "$POSTGRES_PASSWORD" ] && echo "❌ POSTGRES_PASSWORD is missing!" || echo "✅ POSTGRES_PASSWORD is found"
+            [ -z "$SECRET_KEY_BASE" ] && echo "❌ SECRET_KEY_BASE is missing!" || echo "✅ SECRET_KEY_BASE is found"
+            
             KAMAL_VERSION=$(git rev-parse HEAD)
             
             # Explicitly push environment variables
@@ -151,6 +156,11 @@ workflows:
 # 5. RAILS_MASTER_KEY
 #    - Your Rails master key from config/master.key
 #    - Copy the entire contents of config/master.key
+#
+# 6. SECRET_KEY_BASE (NEW)
+#    - Generate with: openssl rand -hex 64
+#    - Example: 83d2... (long hex string)
+#    - This fixes "ArgumentError: key must be 16 bytes" by bypassing credential decryption
 #
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TO ADD ENVIRONMENT VARIABLES:

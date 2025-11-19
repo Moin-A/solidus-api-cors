@@ -50,6 +50,7 @@ env:
   secret:
     - RAILS_MASTER_KEY
     - POSTGRES_PASSWORD
+    - SECRET_KEY_BASE
   clear:
     RAILS_ENV: production
     # Database connection (accessories are accessible via service name 'db')

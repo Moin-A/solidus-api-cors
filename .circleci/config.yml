@@ -51,12 +51,7 @@ jobs:
       - run:
           name: Setup SSH config
           command: |
-            cat >> ~/.ssh/config <<EOF
-            Host $EC2_IP
-              IdentityFile ~/.ssh/kamal-deploy-key.pem
-              StrictHostKeyChecking no
-              User ec2-user
-            EOF
+            printf "Host $EC2_IP\n  IdentityFile ~/.ssh/kamal-deploy-key.pem\n  StrictHostKeyChecking no\n  User ec2-user\n" >> ~/.ssh/config
             chmod 600 ~/.ssh/config
       
       # Step 5: Verify config/deploy.yml exists (for debugging)

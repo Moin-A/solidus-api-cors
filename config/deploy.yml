@@ -53,15 +53,14 @@ env:
     - SECRET_KEY_BASE
   clear:
     RAILS_ENV: production
-    # Database connection (use host.docker.internal since containers are on different networks)
-    # The database is bound to host port 5432, so we reach it via the host
-    DATABASE_HOST: host.docker.internal
+    # Database connection (use Docker bridge gateway IP to reach host from container)
+    # On Linux, containers can reach the host via the bridge gateway (172.17.0.1)
+    DATABASE_HOST: 172.17.0.1
     DATABASE_PORT: 5432
     DATABASE_USER: solidus
     DATABASE_NAME: solidus_production
-    # Redis connection (use host.docker.internal since containers are on different networks)
-    # Redis is bound to host port 6379, so we reach it via the host
-    REDIS_URL: redis://host.docker.internal:6379/0
+    # Redis connection (use Docker bridge gateway IP to reach host from container)
+    REDIS_URL: redis://172.17.0.1:6379/0
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal app logs -r job" will tail logs from the first server in the job section.

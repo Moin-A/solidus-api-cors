@@ -32,8 +32,7 @@ jobs:
       - checkout
       
       # Step 1.5: Setup Docker for building images
-      - setup_remote_docker:
-          version: 24.0.5
+      - setup_remote_docker
       
       # Step 2: Install Kamal gem
       - run:

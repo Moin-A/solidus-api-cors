@@ -98,7 +98,8 @@ jobs:
             echo "Deploying version: $KAMAL_VERSION"
             
             # 3. Build image manually (Standard docker build avoids the session error)
-            docker build -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest .
+            # CRITICAL: We must add the 'service' label so Kamal can manage the container later
+            docker build -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
             
             # 4. Push images
             docker push moindev/solidus-api-cors:$KAMAL_VERSION

@@ -24,10 +24,70 @@ jobs:
             ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
             ssh -i ~/.ssh/kamal-deploy-key.pem ec2-user@$EC2_IP "hostname && whoami"
 
+  deploy:
+    docker:
+      - image: cimg/ruby:3.1
+    steps:
+      # Step 1: Checkout code (this brings config/deploy.yml into CircleCI)
+      - checkout
+      
+      # Step 2: Install Kamal gem
+      - run:
+          name: Install Kamal
+          command: |
+            gem install kamal -v 1.5.0
+      
+      # Step 3: Decrypt SSH key
+      - run:
+          name: Decrypt SSH key
+          command: |
+            mkdir -p ~/.ssh
+            echo "$ENCRYPTED_SSH_KEY" | base64 -d | \
+              openssl enc -aes-256-cbc -d -pbkdf2 -k "$ENCRYPTION_KEY" \
+              > ~/.ssh/kamal-deploy-key.pem
+            chmod 600 ~/.ssh/kamal-deploy-key.pem
+      
+      # Step 4: Setup SSH config for Kamal
+      - run:
+          name: Setup SSH config
+          command: |
+            cat >> ~/.ssh/config <<EOF
+            Host $EC2_IP
+              IdentityFile ~/.ssh/kamal-deploy-key.pem
+              StrictHostKeyChecking no
+              User ec2-user
+            EOF
+            chmod 600 ~/.ssh/config
+      
+      # Step 5: Verify config/deploy.yml exists (for debugging)
+      - run:
+          name: Verify deploy config
+          command: |
+            ls -la config/deploy.yml
+            echo "✅ config/deploy.yml found!"
+      
+      # Step 6: Deploy with Kamal
+      # Kamal will:
+      # - Read config/deploy.yml (from the checked-out repo)
+      # - Build Docker image
+      # - Push to Docker Hub (using KAMAL_REGISTRY_PASSWORD)
+      # - SSH into EC2 and deploy
+      - run:
+          name: Deploy to EC2
+          command: |
+            kamal deploy
+
 workflows:
   test-ssh-workflow:
     jobs:
       - test-ssh
+  
+  deploy-workflow:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only: main
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # REQUIRED ENVIRONMENT VARIABLES (Add in CircleCI Project Settings):
@@ -51,12 +111,21 @@ workflows:
 #    - Your EC2 instance public IP address
 #    - Example: 13.53.125.253
 #
+# 4. POSTGRES_PASSWORD
+#    - Strong password for PostgreSQL database
+#    - Generate with: openssl rand -base64 32
+#    - Example: xK9mP2qL8vN4rT6wY1zA3bC5dE7fG9hI0jK2lM4nO6pQ8rS0tU2vW4xY6zA8b
+#
+# 5. RAILS_MASTER_KEY
+#    - Your Rails master key from config/master.key
+#    - Copy the entire contents of config/master.key
+#
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TO ADD ENVIRONMENT VARIABLES:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #
 # 1. Go to: https://app.circleci.com/settings/project/github/YOUR_USERNAME/solidus-api-cors/environment-variables
-# 2. Click "Add Environment Variable"
+# 2. Click "Add Environment Variable" 
 # 3. Add each variable listed above
 #
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

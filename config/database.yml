@@ -79,6 +79,13 @@ test:
 #
 production:
   <<: *default
-  database: solidus_api_production
-  username: solidus_api
-  password: <%= ENV["SOLIDUS_API_DATABASE_PASSWORD"] %>
+  # Use DATABASE_URL if provided, otherwise use individual settings
+  <% if ENV["DATABASE_URL"] %>
+  url: <%= ENV["DATABASE_URL"] %>
+  <% else %>
+  database: <%= ENV.fetch("DATABASE_NAME") { "solidus_api_production" } %>
+  username: <%= ENV.fetch("DATABASE_USER") { "solidus" } %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD") { ENV["SOLIDUS_API_DATABASE_PASSWORD"] } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { "db" } %>
+  port: <%= ENV.fetch("DATABASE_PORT") { 5432 } %>
+  <% end %>

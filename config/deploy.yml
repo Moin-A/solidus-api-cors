@@ -1,0 +1,106 @@
+  # Name of your application. Used to uniquely configure containers.
+service: solidus-api-cors
+
+# Name of the container image.
+image: moindev/solidus-api-cors
+
+# Deploy to these servers.
+servers:
+  web:
+    hosts:
+      - 13.53.125.253
+    options:
+      "add-host": "host.docker.internal:host-gateway"  
+  # job:
+  #   hosts:
+  #     - 192.168.0.1
+  #   cmd: bin/jobs
+
+# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
+# Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
+#
+# Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
+proxy:
+  ssl: true
+  host: app.example.com
+  # Proxy connects to your container on port 80 by default.
+  app_port: 3000
+
+# Credentials for your image host.
+registry:
+  username: moindev
+  # Always use an access token rather than real password (pulled from .kamal/secrets).
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Configure builder setup.
+builder:
+  arch: amd64
+  # Pass in additional build args needed for your Dockerfile.
+  # args:
+  #   RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+
+# Inject ENV variables into containers (secrets come from .kamal/secrets).
+#
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - POSTGRES_PASSWORD
+  clear:
+    RAILS_ENV: production
+    # Database connection (accessories are accessible via service name 'db')
+    DATABASE_HOST: db
+    DATABASE_PORT: 5432
+    DATABASE_USER: solidus
+    DATABASE_NAME: solidus_production
+    # Redis connection (accessories are accessible via service name 'redis')
+    REDIS_URL: redis://redis:6379/0
+
+# Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
+# "bin/kamal app logs -r job" will tail logs from the first server in the job section.
+#
+# aliases:
+#   shell: app exec --interactive --reuse "bash"
+
+# Use a different ssh user than root
+#
+# ssh:
+#   user: app
+
+# Use a persistent storage volume.
+#
+# volumes:
+#   - "app_storage:/app/storage"
+
+# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
+# hitting 404 on in-flight requests. Combines all files from new and old
+# version inside the asset_path.
+#
+# asset_path: /app/public/assets
+
+# Configure rolling deploys by setting a wait time between batches of restarts.
+#
+# boot:
+#   limit: 10 # Can also specify as a percentage of total hosts, such as "25%"
+#   wait: 2
+
+# Use accessory services (secrets come from .kamal/secrets).
+accessories:
+  db:
+    image: postgres:15
+    host: 13.53.125.253
+    port: 5432
+    env:
+      secret:
+        - POSTGRES_PASSWORD
+      clear:
+        POSTGRES_USER: solidus
+        POSTGRES_DB: solidus_production
+    directories:
+      - data:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    host: 13.53.125.253
+    port: 6379
+    directories:
+      - data:/data

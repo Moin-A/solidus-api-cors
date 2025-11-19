@@ -97,6 +97,15 @@ jobs:
           name: Run Kamal Deploy
           command: |
             KAMAL_VERSION=$(git rev-parse HEAD)
+            
+            # Explicitly push environment variables
+            echo "Pushing environment variables..."
+            kamal env push
+            
+            # Debug: Verify env file exists on remote
+            echo "Verifying remote env file..."
+            ssh -i ~/.ssh/kamal-deploy-key.pem ec2-user@$EC2_IP "ls -la .kamal/env/roles/" || echo "❌ Remote env file missing!"
+            
             # Use --skip-push since we pushed manually
             kamal deploy --skip-push --version $KAMAL_VERSION
 

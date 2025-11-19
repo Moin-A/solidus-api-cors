@@ -67,45 +67,37 @@ jobs:
             ls -la config/deploy.yml
             echo "✅ config/deploy.yml found!"
       
-      # Step 6: Deploy with Kamal
-      # Kamal will:
-      # - Read config/deploy.yml (from the checked-out repo)
-      # - Build Docker image
-      # - Push to Docker Hub (using KAMAL_REGISTRY_PASSWORD)
-      # - SSH into EC2 and deploy
+      # Step 6: Build and Push Docker Image
       - run:
-          name: Deploy to EC2
+          name: Build and Push Docker Image
           command: |
-            # Verify environment variables are set
-            echo "Checking environment variables..."
-            [ -z "$KAMAL_REGISTRY_PASSWORD" ] && echo "⚠️  KAMAL_REGISTRY_PASSWORD is not set" || echo "✅ KAMAL_REGISTRY_PASSWORD is set"
-            [ -z "$RAILS_MASTER_KEY" ] && echo "⚠️  RAILS_MASTER_KEY is not set" || echo "✅ RAILS_MASTER_KEY is set"
-            [ -z "$POSTGRES_PASSWORD" ] && echo "⚠️  POSTGRES_PASSWORD is not set" || echo "✅ POSTGRES_PASSWORD is set"
-            
-            # Test SSH connection before deploying
-            echo "Testing SSH connection..."
-            ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "echo 'SSH connection successful'" || echo "❌ SSH connection failed"
-            
-            # Deploy with Kamal
-            # We build manually to avoid "rpc error: code = Unknown desc = no http response from session"
-            # caused by Kamal's git-archive piping method in CircleCI.
-            
             # 1. Login to Docker Hub
             echo "$KAMAL_REGISTRY_PASSWORD" | docker login -u moindev --password-stdin
             
             # 2. Get the git version hash
             KAMAL_VERSION=$(git rev-parse HEAD)
-            echo "Deploying version: $KAMAL_VERSION"
+            echo "Building version: $KAMAL_VERSION"
             
-            # 3. Build image manually (Standard docker build avoids the session error)
-            # CRITICAL: We must add the 'service' label so Kamal can manage the container later
+            # 3. Build image manually
+            # CRITICAL: Add 'service' label for Kamal
             docker build -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
             
             # 4. Push images
             docker push moindev/solidus-api-cors:$KAMAL_VERSION
             docker push moindev/solidus-api-cors:latest
-            
-            # 5. Deploy passing the version and skipping the build/push step
+
+      # Step 7: Prepare EC2 (Stop conflicts)
+      - run:
+          name: Prepare EC2
+          command: |
+             ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "sudo systemctl stop httpd || true && sudo systemctl stop nginx || true"
+
+      # Step 8: Deploy App with Kamal
+      - run:
+          name: Run Kamal Deploy
+          command: |
+            KAMAL_VERSION=$(git rev-parse HEAD)
+            # Use --skip-push since we pushed manually
             kamal deploy --skip-push --version $KAMAL_VERSION
 
 workflows:

@@ -31,6 +31,10 @@ jobs:
       # Step 1: Checkout code (this brings config/deploy.yml into CircleCI)
       - checkout
       
+      # Step 1.5: Setup Docker for building images
+      - setup_remote_docker:
+          version: 24.0.5
+      
       # Step 2: Install Kamal gem
       - run:
           name: Install Kamal

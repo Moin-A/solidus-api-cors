@@ -8,7 +8,7 @@ module Spree
         @shipment = Spree::Shipment.find_by(number: params[:shipment_number])
         @order = @shipment.order
         authorize! :update, @shipment
-          binding.pry
+        
         if @shipment.pending? && @shipment.can_transition_from_pending_to_ready?
           @shipment.ready!
           @order.update(payment_state: 'ready') if @order.cod?
@@ -20,7 +20,6 @@ module Spree
         redirect_to edit_admin_order_path(@order)
       rescue => e
         flash[:error] = "Error: #{e.message}"
-        binding.pry
         redirect_to  edit_admin_order_path(@order.id)
       end
       

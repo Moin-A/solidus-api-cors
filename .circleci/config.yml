@@ -32,7 +32,10 @@ jobs:
       - checkout
       
       # Step 1.5: Setup Docker for building images
-      - setup_remote_docker
+      # Using a specific version known to work well with BuildKit
+      - setup_remote_docker:
+          version: 20.10.24
+          docker_layer_caching: false
       
       # Step 2: Install Kamal gem
       - run:
@@ -84,7 +87,25 @@ jobs:
             ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "echo 'SSH connection successful'" || echo "❌ SSH connection failed"
             
             # Deploy with Kamal
-            kamal deploy
+            # We build manually to avoid "rpc error: code = Unknown desc = no http response from session"
+            # caused by Kamal's git-archive piping method in CircleCI.
+            
+            # 1. Login to Docker Hub
+            echo "$KAMAL_REGISTRY_PASSWORD" | docker login -u moindev --password-stdin
+            
+            # 2. Get the git version hash
+            KAMAL_VERSION=$(git rev-parse HEAD)
+            echo "Deploying version: $KAMAL_VERSION"
+            
+            # 3. Build image manually (Standard docker build avoids the session error)
+            docker build -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest .
+            
+            # 4. Push images
+            docker push moindev/solidus-api-cors:$KAMAL_VERSION
+            docker push moindev/solidus-api-cors:latest
+            
+            # 5. Deploy passing the version and skipping the build/push step
+            kamal deploy --skip-push --version $KAMAL_VERSION
 
 workflows:
   test-ssh-workflow:

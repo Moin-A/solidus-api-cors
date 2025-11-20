@@ -30,9 +30,11 @@ proxy:
   # Proxy connects to your container on port 80 by default.
   # Backend is accessible on port 3001 directly: http://13.53.125.253:3001
   app_port: 3001
-  # Route /api, /admin, /rails, /sidekiq to backend (priority 20)
+    # Route /api and /admin to backend (priority 20, checked first)
+    # All other routes go to frontend (priority 10)
   labels:
-    traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/rails`) || PathPrefix(`/sidekiq`))"
+    traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))" 
+    traefik.http.routers.solidus-api-cors-web.entrypoints: "web"
     traefik.http.routers.solidus-api-cors-web.priority: "20"
 
 # Credentials for your image host.
@@ -133,9 +135,9 @@ accessories:
         # API_URL is read by next.config.js and made available via process.env.API_URL
         API_URL: http://13.53.125.253:3001
         NODE_ENV: production
-    # Configure Traefik to route frontend on root path
-    # Frontend will be accessible at: http://13.53.125.253/
-    # Backend remains accessible at: http://13.53.125.253:3001
+    # Configure Traefik to route frontend on root path (catch-all, lower priority)
+    # Frontend will be accessible at: http://13.53.125.253/ (all routes except /admin and /api)
+    # Backend handles /admin and /api (priority 20, checked first)
     # Note: Using label format without -- prefix (Kamal adds it)
     labels:
       traefik.enable: "true"

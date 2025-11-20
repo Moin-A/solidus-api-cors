@@ -30,10 +30,11 @@ proxy:
   # Proxy connects to your container on port 80 by default.
   # Backend is accessible on port 3001 directly: [http://13.53.125.253:3001](http://13.53.125.253:3001)
   app_port: 3001
-    # Route /api and /admin to backend (priority 100, checked first)
-    # All other routes go to frontend (priority 10)
+  # Custom Traefik labels to route /api and /admin to backend (priority 100, checked first)
+  # All other routes go to frontend (priority 1)
+  # Note: These labels should override Kamal's default PathPrefix('/') rule
   labels:
-    traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))" 
+    traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))"
     traefik.http.routers.solidus-api-cors-web.entrypoints: "http"
     traefik.http.routers.solidus-api-cors-web.priority: "100"
     traefik.http.services.solidus-api-cors-web.loadbalancer.server.port: "3001"

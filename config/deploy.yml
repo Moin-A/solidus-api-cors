@@ -32,7 +32,7 @@ proxy:
   app_port: 3001
   # Route /api, /admin, /rails, /sidekiq to backend (priority 20)
   options:
-    - "--label=traefik.http.routers.solidus-api-cors-web.rule=Host(13.53.125.253) && (PathPrefix(/api) || PathPrefix(/admin) || PathPrefix(/rails) || PathPrefix(/sidekiq))"
+    - "--label=traefik.http.routers.solidus-api-cors-web.rule=Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/rails`) || PathPrefix(`/sidekiq`))"
     - "--label=traefik.http.routers.solidus-api-cors-web.priority=20"
 
 # Credentials for your image host.
@@ -127,12 +127,13 @@ accessories:
     # Configure Traefik to route frontend on root path
     # Frontend will be accessible at: http://13.53.125.253/
     # Backend remains accessible at: http://13.53.125.253:3001
+    # Note: Using label format without -- prefix (Kamal adds it)
     options:
-      - "--label=traefik.enable=true"
-      - "--label=traefik.http.routers.storefront.rule=Host(13.53.125.253)"
-      - "--label=traefik.http.routers.storefront.entrypoints=web"
-      - "--label=traefik.http.services.storefront.loadbalancer.server.port=3000"
-      - "--label=traefik.http.routers.storefront.priority=10"
+      - "label=traefik.enable=true"
+      - "label=traefik.http.routers.storefront.rule=Host(`13.53.125.253`)"
+      - "label=traefik.http.routers.storefront.entrypoints=web"
+      - "label=traefik.http.services.storefront.loadbalancer.server.port=3000"
+      - "label=traefik.http.routers.storefront.priority=10"
     # Add volumes if needed
     # directories:
     #   - data:/app/data

@@ -128,9 +128,6 @@ jobs:
             kamal deploy --skip-push --version $KAMAL_VERSION
 
 workflows:
-  test-ssh-workflow:
-    jobs:
-      - test-ssh
   
   deploy-workflow:
     jobs:

@@ -14,7 +14,6 @@ servers:
     hosts:
       - 13.53.125.253
     options:
-      "publish": "3999:3001"
       "add-host": "host.docker.internal:host-gateway"
   # job:
   #   hosts:

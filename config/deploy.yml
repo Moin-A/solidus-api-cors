@@ -28,14 +28,16 @@ proxy:
   ssl: false
   host: 13.53.125.253
   # Proxy connects to your container on port 80 by default.
-  # Backend is accessible on port 3001 directly: http://13.53.125.253:3001
+  # Backend is accessible on port 3001 directly: [http://13.53.125.253:3001](http://13.53.125.253:3001)
   app_port: 3001
-    # Route /api and /admin to backend (priority 20, checked first)
+    # Route /api and /admin to backend (priority 100, checked first)
     # All other routes go to frontend (priority 10)
   labels:
     traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))" 
     traefik.http.routers.solidus-api-cors-web.entrypoints: "web"
-    traefik.http.routers.solidus-api-cors-web.priority: "20"
+    traefik.http.routers.solidus-api-cors-web.priority: "100"
+    traefik.http.services.solidus-api-cors-web.loadbalancer.server.port: "3001"
+
 
 # Credentials for your image host.
 registry:
@@ -44,12 +46,14 @@ registry:
   password:
     - KAMAL_REGISTRY_PASSWORD
 
+
 # Configure builder setup.
 builder:
   multiarch: false
   # Pass in additional build args needed for your Dockerfile.
   # args:
   #   RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 #
@@ -136,15 +140,15 @@ accessories:
         API_URL: http://13.53.125.253:3001
         NODE_ENV: production
     # Configure Traefik to route frontend on root path (catch-all, lower priority)
-    # Frontend will be accessible at: http://13.53.125.253/ (all routes except /admin and /api)
-    # Backend handles /admin and /api (priority 20, checked first)
+    # Frontend will be accessible at: [http://13.53.125.253/](http://13.53.125.253/) (all routes except /admin and /api)
+    # Backend handles /admin and /api (priority 100, checked first)
     # Note: Using label format without -- prefix (Kamal adds it)
     labels:
       traefik.enable: "true"
       traefik.http.routers.storefront.rule: "Host(`13.53.125.253`)"
       traefik.http.routers.storefront.entrypoints: "web"
       traefik.http.services.storefront.loadbalancer.server.port: "3000"
-      traefik.http.routers.storefront.priority: "10"
+      traefik.http.routers.storefront.priority: "1"
     # Add volumes if needed
     # directories:
     #   - data:/app/data

@@ -12,4 +12,5 @@ Rails.application.config.assets.version = "1.0"
 # Rails.application.config.assets.precompile += %w( admin.js admin.css )
 Rails.application.config.assets.precompile += ['solidus_starter_frontend_manifest.js']
 Rails.application.config.assets.precompile += ['spree/backend/themes/solidus_admin.css']
+Rails.application.config.assets.precompile += ['spree/backend/all.js']
 Rails.application.config.assets.paths << Rails.root.join('app', 'assets', 'stylesheets', 'fonts')

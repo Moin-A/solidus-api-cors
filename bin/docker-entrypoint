@@ -2,7 +2,12 @@
 
 # If running the rails server then create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
-  ./bin/rails db:prepare
+  # Run migrations without seeds (seeds can fail if SMTP is not configured)
+  ./bin/rails db:migrate || ./bin/rails db:create db:migrate
+  # Only run seeds if explicitly requested via SEED_DB environment variable
+  if [ "${SEED_DB}" == "true" ]; then
+    ./bin/rails db:seed || echo "Seeding failed, continuing anyway..."
+  fi
 fi
 
 exec "${@}"

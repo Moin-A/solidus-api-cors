@@ -34,7 +34,7 @@ proxy:
     # All other routes go to frontend (priority 10)
   labels:
     traefik.http.routers.solidus-api-cors-web.rule: "Host(`13.53.125.253`) && (PathPrefix(`/api`) || PathPrefix(`/admin`))" 
-    traefik.http.routers.solidus-api-cors-web.entrypoints: "web"
+    traefik.http.routers.solidus-api-cors-web.entrypoints: "http"
     traefik.http.routers.solidus-api-cors-web.priority: "100"
     traefik.http.services.solidus-api-cors-web.loadbalancer.server.port: "3001"
 
@@ -146,7 +146,7 @@ accessories:
     labels:
       traefik.enable: "true"
       traefik.http.routers.storefront.rule: "Host(`13.53.125.253`)"
-      traefik.http.routers.storefront.entrypoints: "web"
+      traefik.http.routers.storefront.entrypoints: "http"
       traefik.http.services.storefront.loadbalancer.server.port: "3000"
       traefik.http.routers.storefront.priority: "1"
     # Add volumes if needed

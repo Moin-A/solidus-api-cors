@@ -59,6 +59,8 @@ USER rails:rails
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Healthcheck for Docker and Kamal
+HEALTHCHECK --interval=10s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3001/up || exit 1
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3001

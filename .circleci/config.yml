@@ -102,9 +102,6 @@ jobs:
             echo "Booting redis accessory..."
             kamal accessory boot redis || echo "Redis might already be running"
 
-            echo "Booting redis accessory..."
-            kamal accessory boot storefront || echo "Storefront might already be running"
-
       # Step 9: Deploy App with Kamal
       - run:
           name: Run Kamal Deploy
@@ -128,6 +125,9 @@ jobs:
             kamal deploy --skip-push --version $KAMAL_VERSION
 
 workflows:
+  test-ssh-workflow:
+    jobs:
+      - test-ssh
   
   deploy-workflow:
     jobs:

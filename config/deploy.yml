@@ -60,6 +60,8 @@ env:
     - SMTP_PASSWORD
   clear:
     RAILS_ENV: production
+    # Set PORT to match app_port for consistency (Puma and Kamal healthcheck)
+    PORT: 3001
     # Database connection (use Docker bridge gateway IP to reach host from container)
     # On Linux, containers can reach the host via the bridge gateway (172.17.0.1)
     DATABASE_HOST: 172.17.0.1

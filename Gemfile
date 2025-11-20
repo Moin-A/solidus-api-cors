@@ -81,6 +81,7 @@ gem "responders"
 gem "solidus_support", ">= 0.12.0"
 gem "view_component", "~> 3.0"
 gem "tailwindcss-rails", "~> 3.0"
+gem "dartsass-rails", "~> 0.5"
 gem 'newrelic_rpm'
 
 group :test do

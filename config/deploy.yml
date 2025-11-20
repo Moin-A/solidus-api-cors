@@ -28,7 +28,7 @@ proxy:
   ssl: false
   host: 13.53.125.253
   # Proxy connects to your container on port 80 by default.
-  app_port: 3000
+  app_port: 3001
 
 # Credentials for your image host.
 registry:

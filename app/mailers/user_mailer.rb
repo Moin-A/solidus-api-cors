@@ -6,7 +6,7 @@ class UserMailer < ApplicationMailer
 
   # Set default URL options
   def default_url_options
-    Rails.application.config.action_mailer.default_url_options || { host: 'localhost', port: 3000 }
+    Rails.application.config.action_mailer.default_url_options || { host: 'localhost', port: 3001 }
   end
 
   def welcome_email(user)

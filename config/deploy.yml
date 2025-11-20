@@ -95,10 +95,9 @@ env:
 # asset_path: /app/public/assets
 
 # Configure rolling deploys by setting a wait time between batches of restarts.
-#
-# boot:
-#   limit: 10 # Can also specify as a percentage of total hosts, such as "25%"
-#   wait: 2
+# Increased wait time to allow Rails app to fully boot (migrations, asset compilation, etc.)
+boot:
+  wait: 60 # Wait 60 seconds for container to become healthy before timing out
 
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:

@@ -41,9 +41,9 @@ RUN bundle exec bootsnap precompile app/ lib/
 # Final stage for app image
 FROM base
 
-# Install packages needed for deployment
+# Install packages needed for deployment (including Node.js for runtime asset compilation)
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libvips postgresql-client nodejs && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application

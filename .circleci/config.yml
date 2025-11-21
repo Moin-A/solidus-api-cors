@@ -110,11 +110,11 @@ jobs:
           command: |
             echo "Booting Traefik with SSL configuration..."
             # Remove existing Traefik if it exists (to ensure clean SSL setup)
-            kamal traefik remove || echo "Traefik not running, will create new"
-            # Boot Traefik - Kamal should read ssl: true from deploy.yml
-            # If it doesn't work, we'll need to manually configure SSL
-            kamal traefik boot
-            echo "✅ Traefik booted successfully"
+            ssh -i ~/.ssh/kamal-deploy-key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_IP} "docker stop traefik && docker rm traefik" || echo "Traefik not running, will create new"
+            # Manually configure Traefik with SSL (Kamal 2.8.2 doesn't support traefik section in deploy.yml)
+            # Use /opt/letsencrypt for persistent certificate storage (survives reboots)
+            ssh -i ~/.ssh/kamal-deploy-key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_IP} "sudo mkdir -p /opt/letsencrypt && sudo chmod 755 /opt/letsencrypt && docker run --name traefik --detach --restart unless-stopped --publish 80:80 --publish 443:443 --volume /var/run/docker.sock:/var/run/docker.sock --volume /opt/letsencrypt:/letsencrypt --log-opt max-size=\"10m\" --label traefik.http.routers.catchall.entryPoints=\"web\" --label traefik.http.routers.catchall.rule=\"PathPrefix(\`/\`)\" --label traefik.http.routers.catchall.service=\"unavailable\" --label traefik.http.routers.catchall.priority=\"1\" --label traefik.http.services.unavailable.loadbalancer.server.port=\"0\" traefik:v2.10 --providers.docker --log.level=DEBUG --entrypoints.web.address=:80 --entrypoints.websecure.address=:443 --entrypoints.web.http.redirections.entrypoint.to=websecure --entrypoints.web.http.redirections.entrypoint.scheme=https --certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL:-admin@thestorefront.co.in} --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+            echo "✅ Traefik booted successfully with SSL configuration"
             # Check if Traefik has SSL configured by inspecting the container
             echo "Checking Traefik container configuration..."
             ssh -i ~/.ssh/kamal-deploy-key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_IP} \

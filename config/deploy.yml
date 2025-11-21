@@ -18,15 +18,15 @@ servers:
     labels:
       # Override Kamal's auto-generated labels to use HTTPS
       # Strip protocol and trailing slash from domain for Host() rule
-      domain: "<%= (ENV[\"DOMAIN\"] || \"thestorefront.co.in\").gsub(/^https?:\/\//, '').gsub(/\/$/, '') %>"
+      <% domain = (ENV["DOMAIN"] || "thestorefront.co.in").to_s.gsub(/^https?:\/\//, '').gsub(/\/$/, '') %>
       # HTTPS router (primary - requires websecure entrypoint)
-      traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= (ENV[\"DOMAIN\"] || \"thestorefront.co.in\").gsub(/^https?:\/\//, '').gsub(/\/$/, '') %>`)"
+      traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= domain %>`)"
       traefik.http.routers.solidus-api-cors-web.entrypoints: "websecure"
       traefik.http.routers.solidus-api-cors-web.tls.certresolver: "letsencrypt"
       traefik.http.routers.solidus-api-cors-web.tls: "true"
       traefik.http.routers.solidus-api-cors-web.priority: "10"
       # HTTP router (fallback - works even without websecure)
-      traefik.http.routers.solidus-api-cors-web-http.rule: "Host(`<%= (ENV[\"DOMAIN\"] || \"thestorefront.co.in\").gsub(/^https?:\/\//, '').gsub(/\/$/, '') %>`)"
+      traefik.http.routers.solidus-api-cors-web-http.rule: "Host(`<%= domain %>`)"
       traefik.http.routers.solidus-api-cors-web-http.entrypoints: "web"
       traefik.http.routers.solidus-api-cors-web-http.service: "solidus-api-cors-web"
       traefik.http.routers.solidus-api-cors-web-http.priority: "10"

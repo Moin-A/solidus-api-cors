@@ -102,15 +102,17 @@ jobs:
             echo "Booting redis accessory..."
             kamal accessory boot redis || echo "Redis might already be running"
             
-            echo "Booting storefront accessory..."
-            kamal accessory boot storefront || echo "Storefront might already be running"
 
       # Step 8.5: Boot Traefik with SSL configuration
       - run:
           name: Boot Traefik with SSL
           command: |
             echo "Booting Traefik with SSL configuration..."
-            kamal traefik boot || echo "Traefik might already be configured"
+            # Remove existing Traefik if it exists (to ensure clean SSL setup)
+            kamal traefik remove || echo "Traefik not running, will create new"
+            # Boot Traefik with SSL configuration
+            kamal traefik boot
+            echo "✅ Traefik booted successfully"
 
       # Step 9: Deploy App with Kamal
       - run:

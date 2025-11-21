@@ -40,13 +40,15 @@ RUN mkdir -p app/assets/builds/solidus_admin tmp/cache public/assets
 # Precompile assets (including Tailwind CSS) to avoid SassC errors at runtime
 # Use RAILS_GROUPS=assets to only load asset-related code and skip database
 # RAILS_MASTER_KEY is passed from CircleCI environment variables during build
-# Use ARG to accept it as a build argument
+# Disable CSS compression to prevent SassC from processing Tailwind's modern CSS syntax
 ARG RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 \
     RAILS_MASTER_KEY=${RAILS_MASTER_KEY} \
     RAILS_GROUPS=assets \
     RAILS_ENV=production \
-    ./bin/rails assets:precompile
+    bash -c "cd /rails && \
+             ./bin/rails runner 'Rails.application.config.assets.css_compressor = nil' && \
+             ./bin/rails assets:precompile"
 
 
 # Final stage for app image

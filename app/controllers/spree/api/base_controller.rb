@@ -26,7 +26,7 @@ module Spree
 
       before_action :load_user
       before_action :authorize_for_order, if: proc { order_token.present? }
-      before_action :authenticate_user
+      before_action :authenticate_user, unless: :skip_admin_authentication?
       before_action :load_user_roles
 
       rescue_from ActionController::ParameterMissing, with: :parameter_missing_error
@@ -55,6 +55,13 @@ module Spree
       end
 
       private
+
+      def skip_admin_authentication?
+        # Skip authentication for all admin routes
+        params["controller"]&.start_with?("admin") || 
+        params["controller"]&.start_with?("spree/admin") ||
+        request.path&.start_with?("/admin")
+      end
 
       def set_current_store
         @current_store ||= Spree::Store.current(request.env['SERVER_NAME'])

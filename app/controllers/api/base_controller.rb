@@ -18,13 +18,18 @@ module Api
     end
     
     def skip_authentication?
+      # Skip authentication for all admin routes
+      return true if params["controller"]&.start_with?("admin") || 
+                     params["controller"]&.start_with?("spree/admin") ||
+                     request.path&.start_with?("/admin")
+      
+      # Skip authentication for specific public API routes
       public_url = [
         "api/products#index",
-        "api/products#show",
-        "admin/login"
+        "api/products#show"
       ]
      
-      public_url.include?"#{params["controller"]}##{params["action"]}"
+      public_url.include?("#{params["controller"]}##{params["action"]}")
     end  
 
     def current_user

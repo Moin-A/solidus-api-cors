@@ -27,9 +27,10 @@ servers:
 proxy:
   ssl: true
   host: <%= ENV["DOMAIN"] || "thestorefront.co.in" %>
+
+  forward_headers: false
   # Proxy connects to your container on port 80 by default.
   # Backend is accessible on port 3001 directly: [http://<%= ENV["EC2_IP"] %>:3001](http://<%= ENV["EC2_IP"] %>:3001)
-  app_port: 3001
   # Custom Traefik labels to route requests to the backend with SSL
   labels:
     traefik.enable: "true"

@@ -80,7 +80,8 @@ jobs:
             
             # 3. Build image manually
             # CRITICAL: Add 'service' label for Kamal
-            docker build -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
+            # Pass RAILS_MASTER_KEY as build argument for asset precompilation
+            docker build --build-arg RAILS_MASTER_KEY="$RAILS_MASTER_KEY" -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
             
             # 4. Push images
             docker push moindev/solidus-api-cors:$KAMAL_VERSION

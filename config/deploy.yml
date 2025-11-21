@@ -12,7 +12,7 @@ ssh:
 servers:
   web:
     hosts:
-      - 13.53.125.253
+      - <%= ENV["EC2_IP"] %>
     options:
       "add-host": "host.docker.internal:host-gateway"
   # job:
@@ -26,9 +26,9 @@ servers:
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
   ssl: false
-  host: 13.53.125.253
+  host: <%= ENV["EC2_IP"] %>
   # Proxy connects to your container on port 80 by default.
-  # Backend is accessible on port 3001 directly: [http://13.53.125.253:3001](http://13.53.125.253:3001)
+  # Backend is accessible on port 3001 directly: [http://<%= ENV["EC2_IP"] %>:3001](http://<%= ENV["EC2_IP"] %>:3001)
   app_port: 3001
   # Custom Traefik labels to route /api and /admin to backend (priority 100, checked first)
   # All other routes go to frontend (priority 1)
@@ -110,7 +110,7 @@ boot:
 accessories:
   db:
     image: postgres:15
-    host: 13.53.125.253
+    host: <%= ENV["EC2_IP"] %>
     port: 5432
     env:
       secret:
@@ -122,7 +122,7 @@ accessories:
       - data:/var/lib/postgresql/data
   redis:
     image: redis:7
-    host: 13.53.125.253
+    host: <%= ENV["EC2_IP"] %>
     port: 6379
     directories:
       - data:/data

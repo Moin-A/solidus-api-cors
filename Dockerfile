@@ -35,8 +35,13 @@ COPY . .
 RUN bundle exec bootsnap precompile app/ lib/
 
 # Precompile assets (including Tailwind CSS) to avoid SassC errors at runtime
-# Use a dummy SECRET_KEY_BASE for asset compilation
-RUN SECRET_KEY_BASE_DUMMY=1 RAILS_ENV=production ./bin/rails assets:precompile
+# Use dummy values to skip database/credential initialization during build
+# DATABASE_URL is set to skip database connection attempts
+RUN SECRET_KEY_BASE_DUMMY=1 \
+    RAILS_MASTER_KEY=dummy \
+    DATABASE_URL=postgresql://dummy:dummy@localhost/dummy \
+    RAILS_ENV=production \
+    ./bin/rails assets:precompile
 
 
 # Final stage for app image

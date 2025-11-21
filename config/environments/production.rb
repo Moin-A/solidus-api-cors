@@ -25,7 +25,8 @@ Rails.application.configure do
 
   # Compress CSS using a preprocessor.
   # Explicitly disable CSS compression to prevent SassC from failing on Tailwind's modern CSS syntax
-  config.assets.css_compressor = nil
+  # We use a No-Op compressor because setting it to nil might not be enough if sassc-rails is present
+  config.assets.css_compressor = Class.new { def compress(string); string; end }.new
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   # Assets are precompiled in Dockerfile to avoid SassC errors with Tailwind's modern CSS syntax

@@ -45,6 +45,8 @@ servers:
 proxy:
   ssl: true
   host: <%= ENV["DOMAIN"] || "thestorefront.co.in" %>
+  # Email for Let's Encrypt certificate registration (required for SSL)
+  email: <%= ENV["LETSENCRYPT_EMAIL"] || "admin@thestorefront.co.in" %>
 
   forward_headers: false
   # Proxy connects to your container on port 80 by default.
@@ -101,9 +103,7 @@ env:
     # SMTP Configuration (address and port can be overridden via env vars if needed)
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
-# ✅ Tell Kamal to use port 3001 for health check    
-healthcheck:
-  cmd: curl -f http://localhost:3001/up || exit 1    
+# Note: Healthcheck is configured in Dockerfile, not needed here
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
 # "bin/kamal app logs -r job" will tail logs from the first server in the job section.

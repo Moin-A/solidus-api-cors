@@ -110,9 +110,14 @@ jobs:
             echo "Booting Traefik with SSL configuration..."
             # Remove existing Traefik if it exists (to ensure clean SSL setup)
             kamal traefik remove || echo "Traefik not running, will create new"
-            # Boot Traefik with SSL configuration
+            # Boot Traefik - Kamal should read ssl: true from deploy.yml
+            # If it doesn't work, we'll need to manually configure SSL
             kamal traefik boot
             echo "✅ Traefik booted successfully"
+            # Check if Traefik has SSL configured by inspecting the container
+            echo "Checking Traefik container configuration..."
+            ssh -i ~/.ssh/kamal-deploy-key.pem -o StrictHostKeyChecking=no ec2-user@${EC2_IP} \
+              "docker inspect traefik | grep -A 5 'Ports' || echo 'Could not inspect Traefik container'" || true
 
       # Step 9: Deploy App with Kamal
       - run:

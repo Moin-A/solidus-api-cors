@@ -25,7 +25,7 @@ servers:
 #
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 proxy:
-  ssl: false
+  ssl: true
   host: <%= ENV["EC2_IP"] %>
   # Proxy connects to your container on port 80 by default.
   # Backend is accessible on port 3001 directly: [http://<%= ENV["EC2_IP"] %>:3001](http://<%= ENV["EC2_IP"] %>:3001)

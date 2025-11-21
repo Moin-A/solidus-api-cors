@@ -17,7 +17,8 @@ servers:
       "add-host": "host.docker.internal:host-gateway"
     labels:
       # Override Kamal's auto-generated labels to use HTTPS
-      traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= ENV["DOMAIN"] || "thestorefront.co.in" %>`)"
+      # Strip protocol and trailing slash from domain for Host() rule
+      traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= (ENV["DOMAIN"] || "thestorefront.co.in").gsub(/^https?:\/\//, '').gsub(/\/$/, '') %>`)"
       traefik.http.routers.solidus-api-cors-web.entrypoints: "websecure"
       traefik.http.routers.solidus-api-cors-web.tls.certresolver: "letsencrypt"
       traefik.http.routers.solidus-api-cors-web.tls: "true"

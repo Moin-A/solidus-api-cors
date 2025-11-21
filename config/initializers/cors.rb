@@ -3,7 +3,12 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Add your frontend URLs here
-    origins "https://thestorefront.co.in"
+    # In production, allow the domain; in development, allow localhost
+    if ENV["DOMAIN"]
+      origins "https://#{ENV["DOMAIN"]}", "http://#{ENV["DOMAIN"]}"
+    else
+      origins "http://127.0.0.1:3001"
+    end
 
     # Configure the resources for your API
     resource "*",  # Adjust to match your API routes

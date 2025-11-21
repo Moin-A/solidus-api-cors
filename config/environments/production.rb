@@ -73,6 +73,10 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  # Configure default URL options for email links
+  domain = ENV["DOMAIN"] || "thestorefront.co.in"
+  config.action_mailer.default_url_options = { host: domain, protocol: "https" }
+
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
@@ -88,10 +92,11 @@ Rails.application.configure do
   config.active_record.dump_schema_after_migration = false
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  domain = ENV["DOMAIN"] || "thestorefront.co.in"
+  config.hosts = [
+    domain,           # Allow requests from thestorefront.co.in
+    /.*\.#{domain.gsub('.', '\.')}/ # Allow requests from subdomains
+  ]
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

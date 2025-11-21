@@ -3,9 +3,18 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Add your frontend URLs here
-    # In production, allow the domain; in development, allow localhost
+    # In production, allow the domain and IP; in development, allow localhost
     if ENV["DOMAIN"]
-      origins "https://#{ENV["DOMAIN"]}", "http://#{ENV["DOMAIN"]}"
+      origins_list = [
+        "https://#{ENV["DOMAIN"]}",
+        "http://#{ENV["DOMAIN"]}"
+      ]
+      # Also allow EC2 IP address (in case requests come from IP)
+      if ENV["EC2_IP"]
+        origins_list << "http://#{ENV["EC2_IP"]}"
+        origins_list << "https://#{ENV["EC2_IP"]}"
+      end
+      origins(*origins_list)
     else
       origins "http://127.0.0.1:3001"
     end

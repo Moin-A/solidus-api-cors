@@ -93,10 +93,17 @@ Rails.application.configure do
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   domain = ENV["DOMAIN"] || "thestorefront.co.in"
-  config.hosts = [
+  ec2_ip = ENV["EC2_IP"]
+  allowed_hosts = [
     domain,           # Allow requests from thestorefront.co.in
     /.*\.#{domain.gsub('.', '\.')}/ # Allow requests from subdomains
   ]
+  # Also allow EC2 IP address (in case requests come with IP in Host header)
+  # This can happen if Traefik forwards with IP or if DNS resolves to a different IP
+  allowed_hosts << ec2_ip if ec2_ip
+  # Allow IP address pattern (for cases where domain resolves to IP)
+  allowed_hosts << /\A\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\z/
+  config.hosts = allowed_hosts
   # Skip DNS rebinding protection for the default health check endpoint.
   config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

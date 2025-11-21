@@ -15,6 +15,14 @@ servers:
       - <%= ENV["EC2_IP"] %>
     options:
       "add-host": "host.docker.internal:host-gateway"
+    labels:
+      # Override Kamal's auto-generated labels to use HTTPS
+      traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= ENV["DOMAIN"] || "thestorefront.co.in" %>`)"
+      traefik.http.routers.solidus-api-cors-web.entrypoints: "websecure"
+      traefik.http.routers.solidus-api-cors-web.tls.certresolver: "letsencrypt"
+      traefik.http.routers.solidus-api-cors-web.tls: "true"
+      traefik.http.services.solidus-api-cors-web.loadbalancer.server.port: "3001"
+      traefik.http.services.solidus-api-cors-web.loadbalancer.passHostHeader: "true"
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -32,6 +40,8 @@ proxy:
   # Proxy connects to your container on port 80 by default.
   # Backend is accessible on port 3001 directly: [http://<%= ENV["EC2_IP"] %>:3001](http://<%= ENV["EC2_IP"] %>:3001)
   # Custom Traefik labels to route requests to the backend with SSL
+  app_port: 3001
+  
   labels:
     traefik.enable: "true"
     traefik.http.routers.solidus-api-cors-web.rule: "Host(`<%= ENV["DOMAIN"] || "thestorefront.co.in" %>`)"

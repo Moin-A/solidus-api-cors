@@ -42,11 +42,16 @@ servers:
 # Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
 #
 # Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
+traefik:
+  ssl: true
+  letsencrypt:
+    email: <%= ENV["LETSENCRYPT_EMAIL"] || "admin@thestorefront.co.in" %>
+    domains:
+      - <%= ENV["DOMAIN"] || "thestorefront.co.in" %>
+
 proxy:
   ssl: true
   host: <%= ENV["DOMAIN"] || "thestorefront.co.in" %>
-  # Email for Let's Encrypt certificate registration (required for SSL)
-  email: <%= ENV["LETSENCRYPT_EMAIL"] || "admin@thestorefront.co.in" %>
 
   forward_headers: false
   # Proxy connects to your container on port 80 by default.

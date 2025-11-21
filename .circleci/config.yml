@@ -70,6 +70,7 @@ jobs:
       # Step 6: Build and Push Docker Image
       - run:
           name: Build and Push Docker Image
+          no_output_timeout: 30m
           command: |
             # 1. Login to Docker Hub
             echo "$KAMAL_REGISTRY_PASSWORD" | docker login -u moindev --password-stdin
@@ -78,10 +79,11 @@ jobs:
             KAMAL_VERSION=$(git rev-parse HEAD)
             echo "Building version: $KAMAL_VERSION"
             
-            # 3. Build image manually
+            # 3. Build image manually with build cache
             # CRITICAL: Add 'service' label for Kamal
             # Pass RAILS_MASTER_KEY as build argument for asset precompilation
-            docker build --build-arg RAILS_MASTER_KEY="$RAILS_MASTER_KEY" -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
+            # Use BuildKit for better caching and performance
+            DOCKER_BUILDKIT=1 docker build --build-arg RAILS_MASTER_KEY="$RAILS_MASTER_KEY" -t moindev/solidus-api-cors:$KAMAL_VERSION -t moindev/solidus-api-cors:latest --label service="solidus-api-cors" .
             
             # 4. Push images
             docker push moindev/solidus-api-cors:$KAMAL_VERSION

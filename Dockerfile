@@ -18,9 +18,16 @@ ENV RAILS_ENV="production" \
 FROM base as build
 
 # Install packages needed to build gems and compile assets (including Node.js for Tailwind)
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config nodejs && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+# Split into separate RUN to improve caching - apt-get update is cached separately
+RUN apt-get update -qq
+RUN apt-get install --no-install-recommends -y \
+    build-essential \
+    git \
+    libpq-dev \
+    libvips \
+    pkg-config \
+    nodejs \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./

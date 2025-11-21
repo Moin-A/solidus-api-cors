@@ -20,7 +20,8 @@ module Api
     def skip_authentication?
       public_url = [
         "api/products#index",
-        "api/products#show"
+        "api/products#show",
+        "admin/login"
       ]
      
       public_url.include?"#{params["controller"]}##{params["action"]}"

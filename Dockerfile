@@ -37,21 +37,6 @@ RUN bundle exec bootsnap precompile app/ lib/
 # Create directories needed for asset compilation (Tailwind output, etc.)
 RUN mkdir -p app/assets/builds/solidus_admin tmp/cache public/assets
 
-# Precompile assets (including Tailwind CSS) to avoid SassC errors at runtime
-# Use dummy values and SKIP_DATABASE_CHECK to skip database initialization
-# Build Tailwind CSS first, then precompile all assets
-RUN SECRET_KEY_BASE_DUMMY=1 \
-    RAILS_MASTER_KEY=dummy \
-    DATABASE_URL=postgresql://dummy:dummy@localhost/dummy \
-    SKIP_DATABASE_CHECK=1 \
-    RAILS_ENV=production \
-    bash -c "set -e && \
-             echo 'Building Tailwind CSS...' && \
-             ./bin/rails solidus_admin:tailwindcss:build && \
-             echo 'Precompiling assets...' && \
-             ./bin/rails assets:precompile && \
-             echo 'Asset precompilation completed successfully'"
-
 
 # Final stage for app image
 FROM base

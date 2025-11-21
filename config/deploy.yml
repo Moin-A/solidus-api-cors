@@ -27,7 +27,7 @@ servers:
       traefik.http.routers.solidus-api-cors-web.priority: "10"
       # HTTP router (fallback - works even without websecure)
       traefik.http.routers.solidus-api-cors-web-http.rule: "Host(`<%= domain %>`)"
-      traefik.http.routers.solidus-api-cors-web-http.entrypoints: "web"
+      traefik.http.routers.solidus-api-cors-web-http.entrypoints: "http"
       traefik.http.routers.solidus-api-cors-web-http.service: "solidus-api-cors-web"
       traefik.http.routers.solidus-api-cors-web-http.priority: "10"
       # Service configuration

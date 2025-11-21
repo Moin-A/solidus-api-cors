@@ -3,7 +3,7 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Add your frontend URLs here
-    origins "http://127.0.0.1:3001"
+    origins "https://thestorefront.co.in"
 
     # Configure the resources for your API
     resource "*",  # Adjust to match your API routes

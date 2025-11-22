@@ -185,5 +185,21 @@ accessories:
       clear:
         MINIO_ROOT_USER: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
         MINIO_ROOT_PASSWORD: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
+        # IMPORTANT: Tell MinIO its public URL
+        MINIO_SERVER_URL: "https://<%= ENV['DOMAIN'] || 'thestorefront.co.in' %>/minio"
     directories:
       - data:/data
+    labels:
+      # Enable Traefik routing
+      traefik.enable: "true"
+      
+      # Route for MinIO API (for file access)
+      traefik.http.routers.minio-api.rule: "Host(`<%= ENV['DOMAIN'] || 'thestorefront.co.in' %>`) && PathPrefix(`/minio`)"
+      traefik.http.routers.minio-api.entrypoints: "websecure"
+      traefik.http.routers.minio-api.tls.certresolver: "letsencrypt"
+      traefik.http.services.minio-api.loadbalancer.server.port: "9000"
+      
+      # Middleware to strip /minio prefix
+      traefik.http.middlewares.minio-stripprefix.stripprefix.prefixes: "/minio"
+      traefik.http.middlewares.minio-stripprefix.stripprefix.forceSlash: "false"
+      traefik.http.routers.minio-api.middlewares: "minio-stripprefix"

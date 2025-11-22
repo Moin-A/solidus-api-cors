@@ -3,6 +3,7 @@
 class StoreController < Spree::Api::BaseController
   include Spree::Core::ControllerHelpers::Pricing
   include Spree::Core::ControllerHelpers::Order
+  include Spree::Core::ControllerHelpers::Search
   include Taxonomies
 
   etag { config_locale }

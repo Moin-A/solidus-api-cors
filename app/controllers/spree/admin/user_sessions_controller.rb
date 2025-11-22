@@ -77,14 +77,19 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       Rails.logger.info "Password is valid, signing in user"
       self.resource = user
       set_flash_message!(:notice, :signed_in)
+      Rails.logger.info "About to call sign_in..."
       sign_in(resource_name, resource)
+      Rails.logger.info "sign_in completed"
       Rails.logger.info "User signed in successfully - spree_current_user: #{spree_current_user.inspect}"
       # Don't call spree_user_signed_in? here as it triggers warden.authenticate
+      Rails.logger.info "About to build redirect path..."
+      redirect_path = after_sign_in_path_for(spree_current_user)
+      Rails.logger.info "Redirect path: #{redirect_path.inspect}"
       Rails.logger.info "Proceeding with redirect"
       respond_to do |format|
         format.html {
           flash[:success] = I18n.t('spree.logged_in_succesfully')
-          redirect_back_or_default(after_sign_in_path_for(spree_current_user))
+          redirect_back_or_default(redirect_path)
         }
         format.js {
           user = resource.record
@@ -132,10 +137,16 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def signed_in_root_path(_resource)
     # Use Spree::Core::Engine routes to get admin path
     # This works in both development and production
-    Spree::Core::Engine.routes.url_helpers.admin_path
-  rescue
-    # Fallback to direct path if route helper fails
-    '/admin'
+    Rails.logger.info "signed_in_root_path called for resource: #{_resource.inspect}"
+    begin
+      path = Spree::Core::Engine.routes.url_helpers.admin_path
+      Rails.logger.info "signed_in_root_path resolved to: #{path.inspect}"
+      path
+    rescue => e
+      Rails.logger.error "signed_in_root_path failed: #{e.class} - #{e.message}"
+      # Fallback to direct path if route helper fails
+      '/admin'
+    end
   end
 
   # NOTE: as soon as this gem stops supporting Solidus 3.1 if-else should be removed and left only include

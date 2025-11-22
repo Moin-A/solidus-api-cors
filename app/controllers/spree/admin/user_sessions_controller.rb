@@ -37,26 +37,21 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
     
     # Use Devise's standard authentication flow
     # Build resource from params and authenticate
-    begin
-      self.resource = warden.authenticate!(auth_options)
-      Rails.logger.info "After warden.authenticate! - resource: #{resource.inspect}"
-      Rails.logger.info "resource class: #{resource.class}"
-      Rails.logger.info "spree_user_signed_in?: #{spree_user_signed_in?}"
-    rescue Warden::NotAuthenticated => e
-      Rails.logger.error "Warden::NotAuthenticated caught: #{e.class} - #{e.message}"
-      Rails.logger.error "This usually means invalid email/password"
-      self.resource = resource_class.new(sign_in_params)
-      clean_up_passwords(resource)
-      flash.now[:error] = t('devise.failure.invalid')
-      render :new
-      Rails.logger.info "=== END LOGIN CREATE DEBUG (AUTH FAILED) ==="
-      return
-    end
+    # Try to authenticate with the permitted params
+    Rails.logger.info "Attempting authentication with email: #{sign_in_params[:email]}"
+    Rails.logger.info "sign_in_params keys: #{sign_in_params.keys.inspect}"
     
-    if resource && resource.persisted?
+    # Manually authenticate using the permitted params
+    user = Spree::User.find_by(email: sign_in_params[:email])
+    Rails.logger.info "User lookup result: #{user.inspect}"
+    
+    if user && user.valid_password?(sign_in_params[:password])
+      Rails.logger.info "Password is valid, signing in user"
+      self.resource = user
       set_flash_message!(:notice, :signed_in)
       sign_in(resource_name, resource)
       Rails.logger.info "User signed in successfully - spree_current_user: #{spree_current_user.inspect}"
+      Rails.logger.info "spree_user_signed_in?: #{spree_user_signed_in?}"
       Rails.logger.info "Proceeding with redirect"
       respond_to do |format|
         format.html {
@@ -69,11 +64,15 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
         }
       end
     else
-      Rails.logger.warn "Authentication failed - resource: #{resource.inspect}, persisted?: #{resource&.persisted?}"
-      Rails.logger.warn "Rendering :new (login page)"
+      Rails.logger.error "Authentication failed"
+      Rails.logger.error "User found?: #{user.present?}"
+      Rails.logger.error "Password valid?: #{user&.valid_password?(sign_in_params[:password])}"
+      self.resource = resource_class.new(sign_in_params)
       clean_up_passwords(resource)
       flash.now[:error] = t('devise.failure.invalid')
       render :new
+      Rails.logger.info "=== END LOGIN CREATE DEBUG (AUTH FAILED) ==="
+      return
     end
     Rails.logger.info "=== END LOGIN CREATE DEBUG ==="
   end

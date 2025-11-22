@@ -80,10 +80,12 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       Rails.logger.info "About to call sign_in..."
       sign_in(resource_name, resource)
       Rails.logger.info "sign_in completed"
-      Rails.logger.info "User signed in successfully - spree_current_user: #{spree_current_user.inspect}"
-      # Don't call spree_user_signed_in? here as it triggers warden.authenticate
+      # Don't call spree_current_user here as it might trigger warden.authenticate
+      # Use the resource (user) we already have instead
+      Rails.logger.info "User signed in successfully - resource: #{resource.inspect}"
       Rails.logger.info "About to build redirect path..."
-      redirect_path = after_sign_in_path_for(spree_current_user)
+      # Use resource instead of spree_current_user to avoid triggering authentication
+      redirect_path = after_sign_in_path_for(resource)
       Rails.logger.info "Redirect path: #{redirect_path.inspect}"
       Rails.logger.info "Proceeding with redirect"
       respond_to do |format|

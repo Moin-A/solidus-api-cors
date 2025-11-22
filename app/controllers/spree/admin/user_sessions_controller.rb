@@ -47,15 +47,10 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
     Rails.logger.info "Params: #{params[:spree_user].inspect}"
     Rails.logger.info "Params permitted?: #{params[:spree_user].respond_to?(:permitted?) ? params[:spree_user].permitted? : 'N/A'}"
     Rails.logger.info "sign_in_params: #{sign_in_params.inspect}"
-    Rails.logger.info "About to check spree_user_signed_in? (this might trigger user lookup)..."
-    begin
-      signed_in = spree_user_signed_in?
-      Rails.logger.info "spree_user_signed_in? returned: #{signed_in}"
-    rescue => e
-      Rails.logger.error "spree_user_signed_in? raised exception: #{e.class} - #{e.message}"
-      Rails.logger.error e.backtrace.first(5).join("\n")
-    end
-    Rails.logger.info "About to call auth_options (this might trigger authentication)..."
+    Rails.logger.info "Skipping spree_user_signed_in? check - it might trigger authentication"
+    # Skip spree_user_signed_in? as it might trigger authentication checks
+    # We'll check authentication manually below
+    Rails.logger.info "About to start manual authentication..."
     begin
       auth_opts = auth_options
       Rails.logger.info "auth_options returned: #{auth_opts.inspect}"

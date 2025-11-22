@@ -30,6 +30,8 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def create
     Rails.logger.info "=== LOGIN CREATE DEBUG ==="
     Rails.logger.info "Params: #{params[:spree_user].inspect}"
+    Rails.logger.info "Params permitted?: #{params[:spree_user].respond_to?(:permitted?) ? params[:spree_user].permitted? : 'N/A'}"
+    Rails.logger.info "sign_in_params: #{sign_in_params.inspect}"
     Rails.logger.info "Before authentication - spree_user_signed_in?: #{spree_user_signed_in?}"
     Rails.logger.info "auth_options: #{auth_options.inspect}"
     
@@ -85,6 +87,14 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def after_sign_in_path_for(resource)
     # Use signed_in_root_path which returns /admin
     signed_in_root_path(resource)
+  end
+
+  # Override sign_in_params to ensure params are permitted
+  def sign_in_params
+    Rails.logger.info "sign_in_params called - params[:spree_user]: #{params[:spree_user].inspect}"
+    permitted = params.require(:spree_user).permit(:email, :password, :remember_me)
+    Rails.logger.info "sign_in_params permitted: #{permitted.inspect}"
+    permitted
   end
 
   private

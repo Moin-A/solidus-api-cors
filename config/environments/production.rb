@@ -53,20 +53,36 @@ Rails.application.configure do
   config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = false
+  config.force_ssl = true
 
-  # Log to STDOUT by default
-  config.logger = ActiveSupport::Logger.new(STDOUT)
-    .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
-    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
-
-  # Prepend all log lines with the following tags.
+  # Log to both STDOUT (for Docker/Kamal) and file (for persistent storage)
+  # Create log directory if it doesn't exist
+  log_dir = Rails.root.join("log")
+  FileUtils.mkdir_p(log_dir) unless File.directory?(log_dir)
+  
+  # Create a file logger for unformatted logs (raw logs without timestamps/levels)
+  file_logger = ActiveSupport::Logger.new(log_dir.join("production"))
+  file_logger.level = Logger::DEBUG # More verbose logging to file
+  # Use a simple formatter that just outputs the message
+  file_logger.formatter = proc do |severity, datetime, progname, msg|
+    "#{msg}\n" # Just the message, no formatting
+  end
+  
+  # Create STDOUT logger for Docker/Kamal (formatted with tags)
+  stdout_logger = ActiveSupport::Logger.new(STDOUT)
+  stdout_logger.formatter = ::Logger::Formatter.new
+  stdout_logger = ActiveSupport::TaggedLogging.new(stdout_logger)
+  
+  # Use a broadcast logger to log to both STDOUT and file
+  config.logger = ActiveSupport::BroadcastLogger.new(stdout_logger)
+  config.logger.broadcast_to(file_logger)
+  
+  # Prepend all log lines with the following tags (only affects STDOUT, not file)
   config.log_tags = [ :request_id ]
 
-  # Info include generic and useful information about system operation, but avoids logging too much
-  # information to avoid inadvertent exposure of personally identifiable information (PII). If you
-  # want to log everything, set the level to "debug".
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  # Use debug level for more verbose logging (can be overridden with RAILS_LOG_LEVEL env var)
+  # This will show more detailed information including our debug statements
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
@@ -79,24 +95,7 @@ Rails.application.configure do
 
   # Configure default URL options for email links
   domain = ENV["DOMAIN"] || "thestorefront.co.in"
-
-  domain = domain.gsub(/^https?:\/\//, '').gsub(/\/$/, '')
-
   config.action_mailer.default_url_options = { host: domain, protocol: "https" }
-
-  config.action_controller.default_url_options = {
-    host: domain,
-    protocol: 'https',
-    port: nil  # Don't include port in URLs
-  }
-
-  config.action_dispatch.trusted_proxies = [
-    '127.0.0.1',
-    '::1',
-    '172.17.0.0/16',  # Docker network
-    '172.18.0.0/16'   # Docker network
-  ].map { |proxy| IPAddr.new(proxy) }
-
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

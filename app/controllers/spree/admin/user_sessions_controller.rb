@@ -28,11 +28,24 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
 
   # Override verify_authenticity_token to do nothing
   def create
+    Rails.logger.info "=== LOGIN CREATE DEBUG ==="
+    Rails.logger.info "Params: #{params[:spree_user].inspect}"
+    Rails.logger.info "Before authenticate_spree_user! - spree_user_signed_in?: #{spree_user_signed_in?}"
+    
     # Use Devise's standard authentication flow
     # authenticate_spree_user! authenticates and signs in the user
-    authenticate_spree_user!
+    begin
+      authenticate_spree_user!
+      Rails.logger.info "After authenticate_spree_user! - spree_user_signed_in?: #{spree_user_signed_in?}"
+      Rails.logger.info "spree_current_user: #{spree_current_user.inspect}"
+      Rails.logger.info "resource: #{resource.inspect}"
+    rescue => e
+      Rails.logger.error "authenticate_spree_user! failed: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+    end
 
     if spree_user_signed_in?
+      Rails.logger.info "User is signed in, proceeding with redirect"
       respond_to do |format|
         format.html {
           flash[:success] = I18n.t('spree.logged_in_succesfully')
@@ -44,9 +57,12 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
         }
       end
     else
+      Rails.logger.warn "User is NOT signed in after authenticate_spree_user!"
+      Rails.logger.warn "Rendering :new (login page)"
       flash.now[:error] = t('devise.failure.invalid')
       render :new
     end
+    Rails.logger.info "=== END LOGIN CREATE DEBUG ==="
   end
 
   def authorization_failure

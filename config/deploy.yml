@@ -115,9 +115,10 @@ env:
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
     # MinIO (S3-compatible) Storage Configuration
-    # MinIO is running as a Kamal accessory, accessible via Docker bridge gateway
-    # The Rails container can reach it at 172.17.0.1:9000 (Docker bridge gateway IP)
-    MINIO_ENDPOINT: <%= ENV.fetch("MINIO_ENDPOINT", "http://172.17.0.1:9000") %>
+    # MinIO is running as a Kamal accessory
+    # Use container name for inter-container communication (if on same network)
+    # Fallback options: http://172.17.0.1:9000 (bridge gateway) or http://host.docker.internal:9000
+    MINIO_ENDPOINT: <%= ENV.fetch("MINIO_ENDPOINT", "http://solidus-api-cors-minio:9000") %>
     MINIO_ACCESS_KEY_ID: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
     MINIO_SECRET_ACCESS_KEY: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
     MINIO_BUCKET: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-production") %>

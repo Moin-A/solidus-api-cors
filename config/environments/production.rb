@@ -53,7 +53,7 @@ Rails.application.configure do
   config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = false
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)
@@ -79,7 +79,24 @@ Rails.application.configure do
 
   # Configure default URL options for email links
   domain = ENV["DOMAIN"] || "thestorefront.co.in"
+
+  domain = domain.gsub(/^https?:\/\//, '').gsub(/\/$/, '')
+
   config.action_mailer.default_url_options = { host: domain, protocol: "https" }
+
+  config.action_controller.default_url_options = {
+    host: domain,
+    protocol: 'https',
+    port: nil  # Don't include port in URLs
+  }
+
+  config.action_dispatch.trusted_proxies = [
+    '127.0.0.1',
+    '::1',
+    '172.17.0.0/16',  # Docker network
+    '172.18.0.0/16'   # Docker network
+  ].map { |proxy| IPAddr.new(proxy) }
+
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

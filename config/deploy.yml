@@ -115,8 +115,8 @@ env:
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
     # MinIO (S3-compatible) Storage Configuration
-    # If MinIO is running on the EC2 host, use 172.17.0.1:9000 (Docker bridge gateway)
-    # If MinIO is running in a container on the same network, use the container name:port
+    # MinIO is running as a Kamal accessory, accessible via Docker bridge gateway
+    # The Rails container can reach it at 172.17.0.1:9000 (Docker bridge gateway IP)
     MINIO_ENDPOINT: <%= ENV.fetch("MINIO_ENDPOINT", "http://172.17.0.1:9000") %>
     MINIO_ACCESS_KEY_ID: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
     MINIO_SECRET_ACCESS_KEY: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
@@ -173,5 +173,16 @@ accessories:
     image: redis:7
     host: <%= ENV["EC2_IP"] %>
     port: 6379
+    directories:
+      - data:/data
+  minio:
+    image: quay.io/minio/minio
+    host: <%= ENV["EC2_IP"] %>
+    port: 9000
+    cmd: server /data --console-address ":9001"
+    env:
+      clear:
+        MINIO_ROOT_USER: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
+        MINIO_ROOT_PASSWORD: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
     directories:
       - data:/data

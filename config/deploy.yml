@@ -37,7 +37,6 @@ servers:
       # This tells Rails the original request was HTTPS, so it generates correct redirect URLs
       traefik.http.middlewares.solidus-api-cors-web-headers.headers.sslProxyHeaders.X-Forwarded-Proto: "https"
       traefik.http.middlewares.solidus-api-cors-web-headers.headers.customRequestHeaders.X-Forwarded-Proto: "https"
-      traefik.http.middlewares.solidus-api-cors-web-headers.headers.customRequestHeaders.X-Forwarded-Host: "<%= ENV['DOMAIN'] || 'thestorefront.co.in' %>"
       traefik.http.routers.solidus-api-cors-web.middlewares: "solidus-api-cors-web-headers@docker"
   # job:
   #   hosts:

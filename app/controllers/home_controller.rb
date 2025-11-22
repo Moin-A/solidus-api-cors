@@ -3,6 +3,7 @@
 class HomeController < StoreController
   helper 'spree/products'
   respond_to :html
+  skip_before_action :authenticate_user, only: [:index]
 
   def index
     @searcher = build_searcher(params.merge(include_images: true))

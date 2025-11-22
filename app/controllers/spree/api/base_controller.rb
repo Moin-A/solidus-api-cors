@@ -68,6 +68,7 @@ module Spree
       end
 
       def load_user
+        binding.pry
         @current_api_user ||= Spree.user_class.find_by(spree_api_key: api_key.to_s)
         
         # Fall back to warden session for admin dashboard AJAX requests

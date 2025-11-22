@@ -43,10 +43,23 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def authorization_failure
   end
 
+  protected
+
+  # Override Devise's after_sign_in_path_for to redirect admin users to /admin
+  def after_sign_in_path_for(resource)
+    # Use signed_in_root_path which returns /admin
+    signed_in_root_path(resource)
+  end
+
   private
 
   def signed_in_root_path(_resource)
-    spree.admin_path
+    # Use Spree::Core::Engine routes to get admin path
+    # This works in both development and production
+    Spree::Core::Engine.routes.url_helpers.admin_path
+  rescue
+    # Fallback to direct path if route helper fails
+    '/admin'
   end
 
   # NOTE: as soon as this gem stops supporting Solidus 3.1 if-else should be removed and left only include

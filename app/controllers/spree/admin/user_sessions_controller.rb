@@ -19,12 +19,21 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
 
   # Ensure we skip any authentication checks that might come from concerns
   # Skip authentication for the new action (login page) - users need to access it without being authenticated
+  # Try to skip all possible authenticate_user methods
   skip_before_action :authenticate_user, only: [:new, :create], raise: false
   skip_before_action :load_user, only: [:new, :create], raise: false
   skip_before_action :load_user_roles, only: [:new, :create], raise: false
   # Devise's require_no_authentication redirects authenticated users away from login page
   # We want to allow access to the login page even if already authenticated (for logout/login scenarios)
   skip_before_action :require_no_authentication, only: [:new], raise: false
+  
+  # Override authenticate_user to do nothing for create action
+  def authenticate_user
+    # Do nothing - we handle authentication manually in create action
+    return if action_name == 'create' || action_name == 'new'
+    # Call the original method for other actions
+    super if defined?(super)
+  end
 
   # Override verify_authenticity_token to do nothing
   def create

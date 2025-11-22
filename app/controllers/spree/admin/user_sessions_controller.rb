@@ -29,9 +29,14 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   
   # Override authenticate_user to do nothing for create action
   def authenticate_user
+    Rails.logger.info "=== authenticate_user called for action: #{action_name} ==="
     # Do nothing - we handle authentication manually in create action
-    return if action_name == 'create' || action_name == 'new'
+    if action_name == 'create' || action_name == 'new'
+      Rails.logger.info "Skipping authenticate_user for #{action_name} action"
+      return
+    end
     # Call the original method for other actions
+    Rails.logger.info "Calling super for authenticate_user"
     super if defined?(super)
   end
 
@@ -42,9 +47,26 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
     Rails.logger.info "Params: #{params[:spree_user].inspect}"
     Rails.logger.info "Params permitted?: #{params[:spree_user].respond_to?(:permitted?) ? params[:spree_user].permitted? : 'N/A'}"
     Rails.logger.info "sign_in_params: #{sign_in_params.inspect}"
-    Rails.logger.info "Before authentication - spree_user_signed_in?: #{spree_user_signed_in?}"
-    Rails.logger.info "auth_options: #{auth_options.inspect}"
+    Rails.logger.info "About to check spree_user_signed_in? (this might trigger user lookup)..."
+    begin
+      signed_in = spree_user_signed_in?
+      Rails.logger.info "spree_user_signed_in? returned: #{signed_in}"
+    rescue => e
+      Rails.logger.error "spree_user_signed_in? raised exception: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+    end
+    Rails.logger.info "About to call auth_options (this might trigger authentication)..."
+    begin
+      auth_opts = auth_options
+      Rails.logger.info "auth_options returned: #{auth_opts.inspect}"
+    rescue => e
+      Rails.logger.error "auth_options raised exception: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+    end
     Rails.logger.info "Before actions that should run: #{_process_action_callbacks.select { |c| c.kind == :before }.map(&:filter).inspect}"
+    Rails.logger.info "About to start manual authentication..."
+    Rails.logger.info "FLUSHING LOGS BEFORE AUTHENTICATION"
+    Rails.logger.flush if Rails.logger.respond_to?(:flush)
     
     # Use Devise's standard authentication flow
     # Build resource from params and authenticate
@@ -78,6 +100,9 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       Rails.logger.error "Authentication failed"
       Rails.logger.error "User found?: #{user.present?}"
       Rails.logger.error "Password valid?: #{user&.valid_password?(sign_in_params[:password])}"
+      Rails.logger.error "Password provided: #{sign_in_params[:password].inspect}"
+      Rails.logger.error "User email: #{user&.email}"
+      Rails.logger.error "User has encrypted_password?: #{user&.encrypted_password.present?}"
       self.resource = resource_class.new(sign_in_params)
       clean_up_passwords(resource)
       flash.now[:error] = t('devise.failure.invalid')

@@ -44,6 +44,8 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def create
     Rails.logger.info "=== LOGIN CREATE DEBUG START ==="
     Rails.logger.info "Method create called!"
+    Rails.logger.info "Request referer: #{request.referer.inspect}"
+    Rails.logger.info "Request referer nil?: #{request.referer.nil?}"
     Rails.logger.info "Params: #{params[:spree_user].inspect}"
     Rails.logger.info "Params permitted?: #{params[:spree_user].respond_to?(:permitted?) ? params[:spree_user].permitted? : 'N/A'}"
     Rails.logger.info "sign_in_params: #{sign_in_params.inspect}"
@@ -78,8 +80,14 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       self.resource = user
       set_flash_message!(:notice, :signed_in)
       Rails.logger.info "About to call sign_in..."
-      sign_in(resource_name, resource)
-      Rails.logger.info "sign_in completed"
+      begin
+        sign_in(resource_name, resource)
+        Rails.logger.info "sign_in completed successfully"
+      rescue => e
+        Rails.logger.error "sign_in raised exception: #{e.class} - #{e.message}"
+        Rails.logger.error e.backtrace.first(10).join("\n")
+        raise
+      end
       # Don't call spree_current_user here as it might trigger warden.authenticate
       # Use the resource (user) we already have instead
       Rails.logger.info "User signed in successfully - resource: #{resource.inspect}"
@@ -88,14 +96,17 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       redirect_path = after_sign_in_path_for(resource)
       Rails.logger.info "Redirect path: #{redirect_path.inspect}"
       Rails.logger.info "Proceeding with redirect"
+      Rails.logger.flush if Rails.logger.respond_to?(:flush)
       respond_to do |format|
         format.html {
           flash[:success] = I18n.t('spree.logged_in_succesfully')
           redirect_back_or_default(redirect_path)
+          return # Explicitly return after redirect
         }
         format.js {
           user = resource.record
           render json: { ship_address: user.ship_address, bill_address: user.bill_address }.to_json
+          return # Explicitly return after render
         }
       end
     else

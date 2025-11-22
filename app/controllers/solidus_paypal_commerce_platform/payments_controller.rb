@@ -3,7 +3,6 @@
 module SolidusPaypalCommercePlatform
   class PaymentsController < ::Spree::Api::BaseController
     before_action :load_order
-    skip_before_action :
 
     def create
       authorize! :update, @order, order_token

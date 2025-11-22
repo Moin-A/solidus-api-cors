@@ -129,6 +129,8 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   # Override sign_in_params to ensure params are permitted
   def sign_in_params
     Rails.logger.info "sign_in_params called - params[:spree_user]: #{params[:spree_user].inspect}"
+    # Handle case when params are not present (e.g., on new action)
+    return {} unless params[:spree_user].present?
     permitted = params.require(:spree_user).permit(:email, :password, :remember_me)
     Rails.logger.info "sign_in_params permitted: #{permitted.inspect}"
     permitted

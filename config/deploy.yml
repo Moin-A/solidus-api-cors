@@ -33,6 +33,11 @@ servers:
       # Service configuration
       traefik.http.services.solidus-api-cors-web.loadbalancer.server.port: "3001"
       traefik.http.services.solidus-api-cors-web.loadbalancer.passHostHeader: "true"
+      # CRITICAL: Configure middleware to forward X-Forwarded-Proto header
+      # This tells Rails the original request was HTTPS, so it generates correct redirect URLs
+      traefik.http.middlewares.solidus-api-cors-web-headers.headers.sslProxyHeaders.X-Forwarded-Proto: "https"
+      traefik.http.middlewares.solidus-api-cors-web-headers.headers.customRequestHeaders.X-Forwarded-Proto: "https"
+      traefik.http.routers.solidus-api-cors-web.middlewares: "solidus-api-cors-web-headers@docker"
   # job:
   #   hosts:
   #     - 192.168.0.1

@@ -76,7 +76,16 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   end
 
   def redirect_back_or_default(default)
-    redirect_to(session["spree_user_return_to"] || default)
+    # Use absolute URL to prevent Traefik from modifying the Location header
+    # Traefik may rewrite relative URLs incorrectly, so we send absolute URLs
+    redirect_path = session["spree_user_return_to"] || default
+    redirect_url = if redirect_path.start_with?('http://', 'https://')
+      redirect_path
+    else
+      # Build absolute URL using the request's protocol and host
+      "#{request.protocol}#{request.host_with_port}#{redirect_path}"
+    end
+    redirect_to redirect_url
     session["spree_user_return_to"] = nil
   end
 end

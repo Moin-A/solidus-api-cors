@@ -79,7 +79,7 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       set_flash_message!(:notice, :signed_in)
       sign_in(resource_name, resource)
       Rails.logger.info "User signed in successfully - spree_current_user: #{spree_current_user.inspect}"
-      Rails.logger.info "spree_user_signed_in?: #{spree_user_signed_in?}"
+      # Don't call spree_user_signed_in? here as it triggers warden.authenticate
       Rails.logger.info "Proceeding with redirect"
       respond_to do |format|
         format.html {

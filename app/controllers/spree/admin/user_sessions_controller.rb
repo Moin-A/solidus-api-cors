@@ -28,12 +28,14 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
 
   # Override verify_authenticity_token to do nothing
   def create
-    Rails.logger.info "=== LOGIN CREATE DEBUG ==="
+    Rails.logger.info "=== LOGIN CREATE DEBUG START ==="
+    Rails.logger.info "Method create called!"
     Rails.logger.info "Params: #{params[:spree_user].inspect}"
     Rails.logger.info "Params permitted?: #{params[:spree_user].respond_to?(:permitted?) ? params[:spree_user].permitted? : 'N/A'}"
     Rails.logger.info "sign_in_params: #{sign_in_params.inspect}"
     Rails.logger.info "Before authentication - spree_user_signed_in?: #{spree_user_signed_in?}"
     Rails.logger.info "auth_options: #{auth_options.inspect}"
+    Rails.logger.info "Before actions that should run: #{_process_action_callbacks.select { |c| c.kind == :before }.map(&:filter).inspect}"
     
     # Use Devise's standard authentication flow
     # Build resource from params and authenticate

@@ -18,9 +18,18 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   skip_forgery_protection
 
   # Ensure we skip any authentication checks that might come from concerns
+  # Skip authentication for the new action (login page) - users need to access it without being authenticated
+  skip_before_action :authenticate_user, only: [:new, :create], raise: false
+  skip_before_action :load_user, only: [:new, :create], raise: false
+  skip_before_action :load_user_roles, only: [:new, :create], raise: false
+  # Devise's require_no_authentication redirects authenticated users away from login page
+  # We want to allow access to the login page even if already authenticated (for logout/login scenarios)
+  skip_before_action :require_no_authentication, only: [:new], raise: false
 
   # Override verify_authenticity_token to do nothing
   def create
+    # Use Devise's standard authentication flow
+    # authenticate_spree_user! authenticates and signs in the user
     authenticate_spree_user!
 
     if spree_user_signed_in?

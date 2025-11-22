@@ -87,13 +87,30 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def redirect_back_or_default(default)
     # Use absolute URL to prevent Traefik from modifying the Location header
     # Traefik may rewrite relative URLs incorrectly, so we send absolute URLs
+    
+    # Debug logging to understand redirect behavior
+    Rails.logger.info "=== REDIRECT DEBUG ==="
+    Rails.logger.info "default parameter: #{default.inspect}"
+    Rails.logger.info "session['spree_user_return_to']: #{session['spree_user_return_to'].inspect}"
+    Rails.logger.info "request.protocol: #{request.protocol.inspect}"
+    Rails.logger.info "request.host_with_port: #{request.host_with_port.inspect}"
+    
     redirect_path = session["spree_user_return_to"] || default
+    Rails.logger.info "redirect_path (after ||): #{redirect_path.inspect}"
+    
     redirect_url = if redirect_path.start_with?('http://', 'https://')
+      Rails.logger.info "redirect_path is already absolute: #{redirect_path.inspect}"
       redirect_path
     else
       # Build absolute URL using the request's protocol and host
-      "#{request.protocol}#{request.host_with_port}#{redirect_path}"
+      built_url = "#{request.protocol}#{request.host_with_port}#{redirect_path}"
+      Rails.logger.info "built redirect_url: #{built_url.inspect}"
+      built_url
     end
+    
+    Rails.logger.info "FINAL redirect_url: #{redirect_url.inspect}"
+    Rails.logger.info "=== END REDIRECT DEBUG ==="
+    
     redirect_to redirect_url
     session["spree_user_return_to"] = nil
   end

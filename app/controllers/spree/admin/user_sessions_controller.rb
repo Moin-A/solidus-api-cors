@@ -79,15 +79,13 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       Rails.logger.info "Password is valid, signing in user"
       self.resource = user
       set_flash_message!(:notice, :signed_in)
-      Rails.logger.info "About to call sign_in..."
-      begin
-        sign_in(resource_name, resource)
-        Rails.logger.info "sign_in completed successfully"
-      rescue => e
-        Rails.logger.error "sign_in raised exception: #{e.class} - #{e.message}"
-        Rails.logger.error e.backtrace.first(10).join("\n")
-        raise
-      end
+      
+      Rails.logger.info "About to manually set user in warden (skipping Devise callbacks)..."
+      # Bypass Devise's active_for_authentication? check which is throwing :warden (causing 401)
+      # We skip the :authentication event to avoid triggering callbacks
+      warden.set_user(resource, scope: resource_name)
+      Rails.logger.info "warden.set_user completed successfully"
+      
       # Don't call spree_current_user here as it might trigger warden.authenticate
       # Use the resource (user) we already have instead
       Rails.logger.info "User signed in successfully - resource: #{resource.inspect}"

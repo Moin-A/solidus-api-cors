@@ -114,6 +114,13 @@ env:
     # SMTP Configuration (address and port can be overridden via env vars if needed)
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
+    # MinIO (S3-compatible) Storage Configuration
+    # If MinIO is running on the EC2 host, use 172.17.0.1:9000 (Docker bridge gateway)
+    # If MinIO is running in a container on the same network, use the container name:port
+    MINIO_ENDPOINT: <%= ENV.fetch("MINIO_ENDPOINT", "http://172.17.0.1:9000") %>
+    MINIO_ACCESS_KEY_ID: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
+    MINIO_SECRET_ACCESS_KEY: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
+    MINIO_BUCKET: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-production") %>
 
 # Healthcheck configuration
 # Kamal uses this for the healthcheck container during deployment

@@ -174,9 +174,12 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
     Rails.logger.info "session['spree_user_return_to']: #{session['spree_user_return_to'].inspect}"
     Rails.logger.info "request.protocol: #{request.protocol.inspect}"
     Rails.logger.info "request.host_with_port: #{request.host_with_port.inspect}"
+    Rails.logger.info "request.referer: #{request.referer.inspect}"
     
-    redirect_path = session["spree_user_return_to"] || default
-    Rails.logger.info "redirect_path (after ||): #{redirect_path.inspect}"
+    # Always use the default path for admin login - don't rely on referer or session
+    # This prevents redirects to unauthorized_path when HTTP_REFERER is missing
+    redirect_path = default
+    Rails.logger.info "redirect_path (using default): #{redirect_path.inspect}"
     
     redirect_url = if redirect_path.start_with?('http://', 'https://')
       Rails.logger.info "redirect_path is already absolute: #{redirect_path.inspect}"

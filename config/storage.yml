@@ -21,8 +21,8 @@ minio:
   secret_access_key: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
   region: us-east-1
   bucket: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-#{Rails.env}") %>
-  endpoint: <%= ENV.fetch("MINIO_ENDPOINT", "http://localhost:9000") %>
-  force_path_style: true
+  endpoint: <%= ENV.fetch("MINIO_ENDPOINT", "http://host.docker.internal:9000") %>
+  force_path_style: true  
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

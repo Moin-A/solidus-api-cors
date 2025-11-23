@@ -98,6 +98,10 @@ module Spree
       "noimage/#{style}.png"
     end
 
+    def attachment_url
+      attachment.url rescue nil
+    end
+
     def destroy_attachment(_name)
       attachment.destroy
     end

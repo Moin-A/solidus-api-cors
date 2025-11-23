@@ -43,6 +43,8 @@ Rails.application.configure do
   config.active_storage.service = :amazon
   config.active_storage.variant_processor = :mini_magick
 
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
+
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"

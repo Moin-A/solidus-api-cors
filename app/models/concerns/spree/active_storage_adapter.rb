@@ -101,7 +101,8 @@ module Spree
     def attachment_url
       Rails.application.routes.url_helpers.rails_blob_url(
         attachment,
-        host: ENV["DOMAIN"]
+        host: ENV["DOMAIN"],
+        only_path: true
       )
     end
 

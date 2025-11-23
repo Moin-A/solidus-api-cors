@@ -89,7 +89,11 @@ module Spree
     end
 
     def url(style = default_style)
-      attachment.url(style)
+      url_result = attachment.url(style)
+      return url_result if url_result.present?
+      
+      # Return fallback URL if attachment.url returns nil
+      "noimage/#{style}.png"
     rescue ActiveStorage::FileNotFoundError
       "noimage/#{style}.png"
     end

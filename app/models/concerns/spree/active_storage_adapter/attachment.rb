@@ -25,7 +25,15 @@ module Spree
       end
 
       def url(style = nil)
-        variant(style)&.url
+        variant_url = variant(style)&.url
+        return variant_url if variant_url.present?
+        
+        # Return fallback URL if variant is nil or URL is nil
+        # This prevents "Nil location provided. Can't build URI." errors
+        return nil unless attached?
+        
+        # Try to return the original attachment URL as fallback
+        @attachment.url rescue nil
       end
 
       def variant(style = nil)

@@ -99,7 +99,7 @@ module Spree
     end
 
     def attachment_url
-      attachment.url rescue nil
+      attachment.url(expires_in: 5.minutes)
     end
 
     def destroy_attachment(_name)

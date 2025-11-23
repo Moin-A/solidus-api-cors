@@ -626,6 +626,7 @@ DEPENDENCIES
   factory_bot (>= 4.8)
   factory_bot_rails
   ffaker (~> 2.13)
+  image_processing (~> 1.2)
   importmap-rails
   jbuilder
   mini_magick

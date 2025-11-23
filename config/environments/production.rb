@@ -41,9 +41,7 @@ Rails.application.configure do
 
   # Store uploaded files on AWS S3 (see config/storage.yml for options).
   config.active_storage.service = :amazon
-  config.active_storage.variant_processor = :mini_magick
-
-  config.active_storage.resolve_model_to_route = :rails_storage_proxy
+  config.active_storage.variant_processor = :image_processing
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil

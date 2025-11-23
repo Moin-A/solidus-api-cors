@@ -24,6 +24,9 @@ minio:
   # For production, use public URL if MinIO is accessible via domain
   # For internal access, use container name or bridge gateway IP
   endpoint: <%= ENV.fetch("MINIO_ENDPOINT", Rails.env.production? ? "https://#{ENV.fetch('DOMAIN', 'thestorefront.co.in')}/storage" : "http://localhost:9000") %>
+  public: true
+  url_options:
+    expires_in: 0 
   force_path_style: true
   # Note: If using internal endpoint, ActiveStorage will generate direct URLs that won't work from browser
   # Solution: Either make MinIO publicly accessible or use ActiveStorage proxy mode

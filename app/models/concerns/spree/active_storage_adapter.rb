@@ -99,7 +99,10 @@ module Spree
     end
 
     def attachment_url
-      attachment.url(expires_in: 5.minutes)
+      Rails.application.routes.url_helpers.rails_blob_url(
+        attachment,
+        host: ENV["DOMAIN"]
+      )
     end
 
     def destroy_attachment(_name)

@@ -97,16 +97,14 @@ jobs:
 
       # Step 8: Boot Accessories (Database & Redis)
       - run:
-          name: Boot Database and Redis and MinIO Accessories
+          name: Boot Database and Redis
           command: |
             echo "Booting database accessory..."
             kamal accessory boot db || echo "Database might already be running"
             
             echo "Booting redis accessory..."
             kamal accessory boot redis || echo "Redis might already be running"
-
-            echo "Booting minio accessory..."
-            kamal accessory boot minio || echo "MinIO might already be running"
+            
 
       # Step 8.5: Boot Traefik with SSL configuration
       - run:

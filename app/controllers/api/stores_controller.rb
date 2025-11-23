@@ -4,7 +4,7 @@ class Api::StoresController < ApplicationController
       @store = Spree::Store.find(params[:id])
       
       render json: @store.as_json.merge(
-        hero_image_url: @store.hero_image.attached? ? url_for(@store.hero_image) : nil
+        hero_image_url: @store.hero_image.attached? ? @store.hero_image.url : nil
       )
     rescue ActiveRecord::RecordNotFound
       render json: { error: 'Store not found' }, status: :not_found

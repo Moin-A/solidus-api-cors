@@ -41,6 +41,12 @@ Rails.application.configure do
 
   # Store uploaded files on MinIO (S3-compatible) storage (see config/storage.yml for options).
   config.active_storage.service = :minio
+  
+  # Use proxy mode to serve files through Rails instead of direct MinIO URLs
+  # This ensures URLs are accessible from browsers (Rails proxies to MinIO internally)
+  # Files will be served via /rails/active_storage/disk/... URLs
+  config.active_storage.variant_processor = :mini_magick
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil

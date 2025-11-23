@@ -21,8 +21,12 @@ minio:
   secret_access_key: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
   region: us-east-1
   bucket: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-#{Rails.env}") %>
-  endpoint: <%= ENV.fetch("MINIO_ENDPOINT", "http://host.docker.internal:9000") %>
+  # For production, use public URL if MinIO is accessible via domain
+  # For internal access, use container name or bridge gateway IP
+  endpoint: <%= ENV.fetch("MINIO_ENDPOINT", Rails.env.production? ? "https://#{ENV.fetch('DOMAIN', 'thestorefront.co.in')}/storage" : "http://localhost:9000") %>
   force_path_style: true
+  # Note: If using internal endpoint, ActiveStorage will generate direct URLs that won't work from browser
+  # Solution: Either make MinIO publicly accessible or use ActiveStorage proxy mode
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

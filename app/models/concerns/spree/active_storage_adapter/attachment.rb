@@ -29,13 +29,23 @@ module Spree
       end
 
       def variant(style = nil)
-        transformation = @transformations[style] || default_transformation(width, height)
-
-        @attachment.variant({
-          saver: {
-            strip: true
-          }
-        }.merge(transformation)).processed
+        return nil unless attached?
+        
+        transformation = @transformations[style]
+        
+        # If no style-specific transformation, use default if dimensions are available
+        if transformation.nil?
+          return nil if width.nil? || height.nil?
+          transformation = default_transformation(width, height)
+        end
+        
+        # Create variant with transformation options
+        # Note: saver options like strip are handled by ActiveStorage when using image_processing
+        @attachment.variant(transformation).processed
+      rescue => e
+        Rails.logger.error("Failed to create variant: #{e.message}")
+        Rails.logger.error(e.backtrace.join("\n"))
+        nil
       end
 
       def height

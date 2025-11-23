@@ -99,6 +99,8 @@ env:
     - SECRET_KEY_BASE
     - SMTP_USER_NAME
     - SMTP_PASSWORD
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
   clear:
     RAILS_ENV: production
     # Set PORT to match app_port for consistency (Puma and Kamal healthcheck)
@@ -114,14 +116,10 @@ env:
     # SMTP Configuration (address and port can be overridden via env vars if needed)
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
-    # MinIO (S3-compatible) Storage Configuration
-    # MinIO is running as a Kamal accessory
-    # Use container name for inter-container communication (if on same network)
-    # Fallback options: http://172.17.0.1:9000 (bridge gateway) or http://host.docker.internal:9000
-    MINIO_ENDPOINT: <%= ENV.fetch("MINIO_ENDPOINT", "http://solidus-api-cors-minio:9000") %>
-    MINIO_ACCESS_KEY_ID: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
-    MINIO_SECRET_ACCESS_KEY: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
-    MINIO_BUCKET: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-production") %>
+    # AWS S3 Storage Configuration
+    # AWS credentials should be set via environment variables or Rails credentials
+    AWS_REGION: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
+    AWS_S3_BUCKET: <%= ENV.fetch("AWS_S3_BUCKET", "solidus-storage-production") %>
 
 # Healthcheck configuration
 # Kamal uses this for the healthcheck container during deployment
@@ -176,30 +174,3 @@ accessories:
     port: 6379
     directories:
       - data:/data
-  minio:
-    image: quay.io/minio/minio
-    host: <%= ENV["EC2_IP"] %>
-    port: 9000
-    cmd: server /data --console-address ":9001"
-    env:
-      clear:
-        MINIO_ROOT_USER: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
-        MINIO_ROOT_PASSWORD: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
-        # IMPORTANT: Tell MinIO its public URL
-        MINIO_SERVER_URL: "https://<%= ENV['DOMAIN'] || 'thestorefront.co.in' %>/minio"
-    directories:
-      - data:/data
-    labels:
-      # Enable Traefik routing
-      traefik.enable: "true"
-      
-      # Route for MinIO API (for file access)
-      traefik.http.routers.minio-api.rule: "Host(`<%= ENV['DOMAIN'] || 'thestorefront.co.in' %>`) && PathPrefix(`/minio`)"
-      traefik.http.routers.minio-api.entrypoints: "websecure"
-      traefik.http.routers.minio-api.tls.certresolver: "letsencrypt"
-      traefik.http.services.minio-api.loadbalancer.server.port: "9000"
-      
-      # Middleware to strip /minio prefix
-      traefik.http.middlewares.minio-stripprefix.stripprefix.prefixes: "/minio"
-      traefik.http.middlewares.minio-stripprefix.stripprefix.forceSlash: "false"
-      traefik.http.routers.minio-api.middlewares: "minio-stripprefix"

@@ -6,27 +6,14 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-# amazon:
-#   service: S3
-#   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-#   secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-#   region: us-east-1
-#   bucket: your_own_bucket-<%= Rails.env %>
-
-# MinIO (S3-compatible) storage configuration
-minio:
+# AWS S3 storage configuration
+# Use environment variables or Rails credentials for AWS secrets
+amazon:
   service: S3
-  access_key_id: <%= ENV.fetch("MINIO_ACCESS_KEY_ID", "minioadmin") %>
-  secret_access_key: <%= ENV.fetch("MINIO_SECRET_ACCESS_KEY", "minioadmin") %>
-  region: us-east-1
-  bucket: <%= ENV.fetch("MINIO_BUCKET", "solidus-storage-#{Rails.env}") %>
-  # For production, use public URL if MinIO is accessible via domain
-  # For internal access, use container name or bridge gateway IP
-  endpoint: <%= ENV.fetch("MINIO_ENDPOINT", Rails.env.production? ? "https://#{ENV.fetch('DOMAIN', 'thestorefront.co.in')}/storage" : "http://localhost:9000") %>
-  force_path_style: true
-  # Note: If using internal endpoint, ActiveStorage will generate direct URLs that won't work from browser
-  # Solution: Either make MinIO publicly accessible or use ActiveStorage proxy mode
+  access_key_id: <%= ENV.fetch("AWS_ACCESS_KEY_ID") { Rails.application.credentials.dig(:aws, :access_key_id) } %>
+  secret_access_key: <%= ENV.fetch("AWS_SECRET_ACCESS_KEY") { Rails.application.credentials.dig(:aws, :secret_access_key) } %>
+  region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
+  bucket: <%= ENV.fetch("AWS_S3_BUCKET", "solidus-storage-#{Rails.env}") %>
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

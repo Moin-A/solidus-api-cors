@@ -39,14 +39,9 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on MinIO (S3-compatible) storage (see config/storage.yml for options).
-  config.active_storage.service = :minio
-  
-  # Use proxy mode to serve files through Rails instead of direct MinIO URLs
-  # This ensures URLs are accessible from browsers (Rails proxies to MinIO internally)
-  # Files will be served via /rails/active_storage/disk/... URLs
+  # Store uploaded files on AWS S3 (see config/storage.yml for options).
+  config.active_storage.service = :amazon
   config.active_storage.variant_processor = :mini_magick
-  config.active_storage.resolve_model_to_route = :rails_storage_proxy
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil

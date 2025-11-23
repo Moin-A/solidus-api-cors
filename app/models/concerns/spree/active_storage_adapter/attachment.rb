@@ -28,14 +28,12 @@ module Spree
         variant_url = variant(style)&.url
         return variant_url if variant_url.present?
         
+        # Return fallback URL if variant is nil or URL is nil
+        # This prevents "Nil location provided. Can't build URI." errors
         return nil unless attached?
         
-        # Use service_url without disposition/content_type to avoid signed URL issues
-        # This prevents "Request specific response headers cannot be used for anonymous GET requests" errors
-        @attachment.service_url(expires_in: 1.hour)
-      rescue => e
-        Rails.logger.error("Failed to generate URL: #{e.message}")
-        nil
+        # Try to return the original attachment URL as fallback
+        @attachment.url rescue nil
       end
 
       def variant(style = nil)

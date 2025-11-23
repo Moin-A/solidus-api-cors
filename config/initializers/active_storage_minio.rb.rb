@@ -9,9 +9,9 @@ Rails.application.config.to_prepare do
   ActiveStorage::Blob.class_eval do
     def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
       # Use Rails proxy URL instead of direct service URL
-      # Since config.active_storage.resolve_model_to_route = :rails_storage_proxy is set,
-      # rails_blob_url will automatically use the proxy
-      Rails.application.routes.url_helpers.rails_blob_url(
+      # Use rails_service_blob_proxy_url to explicitly use the proxy route
+      # This ensures files are served through Rails, proxying to MinIO internally
+      Rails.application.routes.url_helpers.rails_service_blob_proxy_url(
         self,
         only_path: false,
         host: Rails.application.config.action_mailer.default_url_options&.dig(:host) ||

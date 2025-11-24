@@ -53,7 +53,7 @@ module Api
               { 
                 images: { 
                 only: [:alt] ,
-                methods: [:url]
+                methods: [:attachment_url]
                 },
                 option_values: {
                   include: {
@@ -86,6 +86,7 @@ module Api
               id: image.id,
               alt: image.alt,
               url: image.attachment.attached? ? url_for(image.attachment) : nil,
+              url: image.attachment.attached? ? url_for(image.attachment_url) : nil,
               thumb_url: image.attachment.attached? ? url_for(image.attachment.variant(resize_to_limit: [200, 200])) : nil
             }
           end

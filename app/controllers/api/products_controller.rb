@@ -121,7 +121,6 @@ module Api
         @top_rated_products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do       
           @taxon.top_rated_products(limit: 3)
         end
-        binding.pry
         render json: @top_rated_products.as_json(include: [:variants, :taxons, master: :image])
       end
     end

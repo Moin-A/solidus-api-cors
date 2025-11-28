@@ -14,7 +14,420 @@ A collection of elegant Ruby patterns and techniques for writing clean, maintain
 
 ---
 
-## Class Instance Variables with `super` for Inheritable Registries
+## Class Instance Variables with `super` # Registry Pattern Examples in Ruby on Rails
+
+The **Registry Pattern** is a design pattern where you maintain a list of registered items (methods, classes, callbacks, etc.) that can be discovered and used dynamically at runtime.
+
+## Core Concept
+
+```ruby
+class MyModel < ApplicationRecord
+  # Registry to store registered items
+  cattr_accessor :registered_items do
+    []
+  end
+  
+  # Method to register new items
+  def self.register_item(name, &block)
+    # Define the method
+    singleton_class.send(:define_method, name.to_sym, &block)
+    # Add to registry
+    registered_items << name.to_sym
+  end
+end
+```
+
+## Example 1: Auto-Generate Search APIs
+
+**Use Case**: Build a flexible REST API where search capabilities are automatically exposed based on registered scopes.
+
+```ruby
+# app/models/product.rb
+class Product < ApplicationRecord
+  cattr_accessor :search_scopes do
+    []
+  end
+  
+  def self.add_search_scope(name, &block)
+    singleton_class.send(:define_method, name.to_sym, &block)
+    search_scopes << name.to_sym
+  end
+  
+  # Register various search scopes
+  add_search_scope :by_category do |category|
+    where(category: category)
+  end
+  
+  add_search_scope :price_range do |min, max|
+    where(price: min..max)
+  end
+  
+  add_search_scope :in_stock do
+    where("inventory > ?", 0)
+  end
+  
+  add_search_scope :by_name do |query|
+    where("name ILIKE ?", "%#{query}%")
+  end
+end
+
+# app/controllers/api/v1/products_controller.rb
+class Api::V1::ProductsController < ApplicationController
+  def index
+    @products = Product.all
+    
+    # Automatically apply any registered search scope from query params
+    Product.search_scopes.each do |scope_name|
+      if params[scope_name].present?
+        args = parse_scope_arguments(params[scope_name])
+        @products = @products.public_send(scope_name, *args)
+      end
+    end
+    
+    render json: @products
+  end
+  
+  # Auto-generate API documentation
+  def available_filters
+    filters = Product.search_scopes.map do |scope_name|
+      {
+        name: scope_name,
+        description: "Filter products by #{scope_name.to_s.humanize}",
+        example: "/api/v1/products?#{scope_name}=value"
+      }
+    end
+    
+    render json: { available_filters: filters }
+  end
+  
+  private
+  
+  def parse_scope_arguments(value)
+    # Handle comma-separated values for scopes with multiple args
+    value.to_s.include?(',') ? value.split(',') : [value]
+  end
+end
+
+# Usage Examples:
+# GET /api/v1/products?by_category=electronics
+# GET /api/v1/products?price_range=10,50
+# GET /api/v1/products?in_stock=true&by_name=laptop
+# GET /api/v1/products/available_filters  # See all available search options
+```
+
+**Benefits**:
+- ✅ Add new search capability = automatically available in API
+- ✅ No need to update controller for each new scope
+- ✅ Auto-generated documentation knows all available filters
+- ✅ Consistent API structure
+
+---
+
+## Example 2: Query Builder DSL with Chainable Filters
+
+**Use Case**: Create a fluent interface for building complex queries with validation.
+
+```ruby
+# app/models/product.rb
+class Product < ApplicationRecord
+  cattr_accessor :query_filters do
+    {}
+  end
+  
+  def self.register_filter(name, validator: nil, &block)
+    # Store filter metadata
+    query_filters[name.to_sym] = {
+      block: block,
+      validator: validator
+    }
+    
+    # Define the scope
+    singleton_class.send(:define_method, name.to_sym, &block)
+  end
+  
+  # Register filters with validators
+  register_filter :by_price_range, validator: ->(min, max) {
+    min.to_f >= 0 && max.to_f >= min.to_f
+  } do |min, max|
+    where(price: min.to_f..max.to_f)
+  end
+  
+  register_filter :by_status, validator: ->(status) {
+    %w[active inactive discontinued].include?(status)
+  } do |status|
+    where(status: status)
+  end
+  
+  register_filter :by_brand do |brand|
+    where(brand: brand)
+  end
+  
+  register_filter :in_stock_only do
+    where("inventory_count > ?", 0)
+  end
+  
+  register_filter :recently_added do |days = 7|
+    where("created_at >= ?", days.to_i.days.ago)
+  end
+end
+
+# app/services/product_query_builder.rb
+class ProductQueryBuilder
+  attr_reader :relation, :applied_filters, :errors
+  
+  def initialize(base_relation = Product.all)
+    @relation = base_relation
+    @applied_filters = []
+    @errors = []
+  end
+  
+  # Dynamically create methods for each registered filter
+  Product.query_filters.each do |filter_name, metadata|
+    define_method(filter_name) do |*args|
+      apply_filter(filter_name, args, metadata)
+      self # Return self for chaining
+    end
+  end
+  
+  def apply_filters(filter_hash)
+    filter_hash.each do |filter_name, args|
+      filter_name = filter_name.to_sym
+      
+      if Product.query_filters.key?(filter_name)
+        metadata = Product.query_filters[filter_name]
+        args = Array(args)
+        apply_filter(filter_name, args, metadata)
+      else
+        @errors << "Unknown filter: #{filter_name}"
+      end
+    end
+    self
+  end
+  
+  def valid?
+    @errors.empty?
+  end
+  
+  def results
+    valid? ? @relation : Product.none
+  end
+  
+  def to_sql
+    @relation.to_sql
+  end
+  
+  private
+  
+  def apply_filter(filter_name, args, metadata)
+    validator = metadata[:validator]
+    
+    # Validate if validator exists
+    if validator && !validator.call(*args)
+      @errors << "Invalid arguments for #{filter_name}: #{args.inspect}"
+      return
+    end
+    
+    # Apply the filter
+    @relation = @relation.public_send(filter_name, *args)
+    @applied_filters << { name: filter_name, args: args }
+  end
+end
+
+# Usage Examples:
+
+# Example 1: Fluent/chainable interface
+search = ProductQueryBuilder.new
+results = search
+  .by_status('active')
+  .by_price_range(10, 100)
+  .in_stock_only
+  .recently_added(30)
+  .results
+
+# Example 2: Build from hash (useful for saved searches)
+saved_search = {
+  by_status: 'active',
+  by_price_range: [50, 200],
+  by_brand: 'Sony'
+}
+
+search = ProductQueryBuilder.new.apply_filters(saved_search)
+
+if search.valid?
+  products = search.results
+else
+  puts "Errors: #{search.errors.join(', ')}"
+end
+
+# Example 3: Inspect what filters were applied
+search = ProductQueryBuilder.new
+  .by_status('active')
+  .by_brand('Apple')
+
+puts search.applied_filters
+# => [
+#      { name: :by_status, args: ['active'] },
+#      { name: :by_brand, args: ['Apple'] }
+#    ]
+
+# Example 4: Get SQL for debugging
+search = ProductQueryBuilder.new
+  .by_price_range(100, 500)
+  .in_stock_only
+
+puts search.to_sql
+# => SELECT "products".* FROM "products" 
+#    WHERE "products"."price" BETWEEN 100 AND 500 
+#    AND (inventory_count > 0)
+```
+
+**Benefits**:
+- ✅ Chainable, readable query building
+- ✅ Built-in validation for filter arguments
+- ✅ Track which filters were applied (useful for debugging/analytics)
+- ✅ Easy to save and restore search configurations
+- ✅ Type-safe: only registered filters can be used
+- ✅ Add new filter = automatically available in query builder
+
+---
+
+## Example 3: Auto-Generate Admin UI Forms
+
+**Use Case**: Create admin search forms that automatically update when new scopes are added.
+
+```ruby
+# app/models/product.rb
+class Product < ApplicationRecord
+  cattr_accessor :search_scopes_metadata do
+    {}
+  end
+  
+  def self.add_search_scope(name, label: nil, input_type: :text, &block)
+    # Store metadata for UI generation
+    search_scopes_metadata[name.to_sym] = {
+      label: label || name.to_s.humanize,
+      input_type: input_type
+    }
+    
+    # Define the scope
+    singleton_class.send(:define_method, name.to_sym, &block)
+  end
+  
+  add_search_scope :by_name, 
+    label: "Product Name",
+    input_type: :text do |query|
+    where("name ILIKE ?", "%#{query}%")
+  end
+  
+  add_search_scope :by_category,
+    label: "Category",
+    input_type: :select do |category|
+    where(category: category)
+  end
+  
+  add_search_scope :price_min,
+    label: "Minimum Price",
+    input_type: :number do |price|
+    where("price >= ?", price)
+  end
+  
+  add_search_scope :in_stock,
+    label: "In Stock Only",
+    input_type: :checkbox do
+    where("inventory > 0")
+  end
+end
+
+# app/helpers/admin/search_helper.rb
+module Admin::SearchHelper
+  def render_search_form(model_class)
+    content_tag :div, class: 'search-form' do
+      form_with url: admin_products_path, method: :get do |f|
+        model_class.search_scopes_metadata.map do |scope_name, metadata|
+          render_search_field(f, scope_name, metadata)
+        end.join.html_safe
+      end
+    end
+  end
+  
+  def render_search_field(form, scope_name, metadata)
+    content_tag :div, class: 'form-group' do
+      label = form.label scope_name, metadata[:label]
+      
+      input = case metadata[:input_type]
+      when :text
+        form.text_field scope_name, class: 'form-control'
+      when :number
+        form.number_field scope_name, class: 'form-control'
+      when :select
+        options = get_select_options(scope_name)
+        form.select scope_name, options, { include_blank: true }, class: 'form-control'
+      when :checkbox
+        form.check_box scope_name
+      end
+      
+      label + input
+    end
+  end
+end
+
+# app/views/admin/products/index.html.erb
+<h1>Search Products</h1>
+
+<%= render_search_form(Product) %>
+
+<div id="results">
+  <%= render @products %>
+</div>
+
+<!-- Generated HTML will look like:
+<div class="search-form">
+  <form action="/admin/products" method="get">
+    <div class="form-group">
+      <label>Product Name</label>
+      <input type="text" name="by_name" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select name="by_category" class="form-control">...</select>
+    </div>
+    <div class="form-group">
+      <label>Minimum Price</label>
+      <input type="number" name="price_min" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>In Stock Only</label>
+      <input type="checkbox" name="in_stock">
+    </div>
+  </form>
+</div>
+-->
+```
+
+**Benefits**:
+- ✅ Add new scope = form automatically updates
+- ✅ Consistent UI across different models
+- ✅ No need to manually update views
+- ✅ Metadata-driven UI generation
+
+---
+
+## Key Takeaways
+
+The Registry Pattern is powerful when you need:
+
+1. **Dynamic Discovery**: "What capabilities are available?"
+2. **Metaprogramming**: Auto-generate UIs, APIs, documentation
+3. **Extensibility**: Plugins can add features without modifying core code
+4. **Consistency**: Enforce conventions across your codebase
+5. **Security**: Whitelist safe operations
+
+**When NOT to use it**:
+- Simple CRUD apps with static requirements
+- When you don't need dynamic discovery
+- When explicit is better than magic (team preference)
+
+The pattern trades some explicitness for flexibility and maintainability in systems that need to be highly extensible.for Inheritable Registries
 
 ### Pattern Overview
 

@@ -93,7 +93,7 @@ module Spree
     # @param limit [Integer] number of products to return (default: 10)
     # @param min_ratings [Integer] minimum number of ratings required (default: 3)
     def top_rated_products(limit:)
-      Product.joins(:taxons)
+      Product.joins(:taxons, master: :images, variants: :images)
         .where(spree_taxons: { id: self_and_descendants.select(:id) })
         .top_rated(limit)
     end

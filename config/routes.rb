@@ -45,6 +45,9 @@ Rails.application.routes.draw do
         get 'variants'
         get 'related'
       end
+      collection do
+        get 'top_rated'
+      end
     end
     
     # Variants

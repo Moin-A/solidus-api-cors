@@ -89,6 +89,15 @@ module Spree
       Variant.where(product_id: all_products.select(:id))
     end
 
+    # @return [ActiveRecord::Relation<Spree::Product>] top rated products in this taxon and its descendants
+    # @param limit [Integer] number of products to return (default: 10)
+    # @param min_ratings [Integer] minimum number of ratings required (default: 3)
+    def top_rated_products(limit:)
+      Product.joins(:taxons)
+        .where(spree_taxons: { id: self_and_descendants.select(:id) })
+        .top_rated(limit)
+    end
+
     # @return [String] this taxon's ancestors names followed by its own name,
     #   separated by arrows
     def pretty_name

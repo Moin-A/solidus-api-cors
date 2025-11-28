@@ -111,6 +111,21 @@ module Api
       render json: @related_products.as_json(include: [:variants, :taxons])
     end
 
+    def top_rated
+      key = params[:taxon_id] || params[:permalink]  
+      cache_key = "top_rated_products_taxon_#{key}"
+      @taxon = Spree::Taxon.find_by(permalink: key)
+      if @taxon.nil?
+        render json: {error: "Taxon not found"}, status: :not_found
+      else      
+        @top_rated_products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do       
+          @taxon.top_rated_products(limit: 3)
+        end
+        binding.pry
+        render json: @top_rated_products.as_json(include: [:variants, :taxons, master: :image])
+      end
+    end
+
     private
 
     def grouped_option_types_with_values(option_values)

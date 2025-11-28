@@ -34,6 +34,9 @@ module Spree
     belongs_to :shipping_category, class_name: 'Spree::ShippingCategory', inverse_of: :products, optional: true
     belongs_to :primary_taxon, class_name: 'Spree::Taxon', optional: true
 
+    has_many :products_ratings, dependent: :destroy, inverse_of: :product
+    has_many :ratings, through: :products_ratings, dependent: :destroy
+
     has_one :master,
       -> { where(is_master: true).with_discarded },
       inverse_of: :product,
@@ -302,6 +305,21 @@ module Spree
 
     def variant_option_value_ids
       variants.joins(:option_values).pluck('spree_option_values.id').uniq
+    end
+
+    # Calculate average rating for this product
+    def average_rating
+      approved_ratings.average(:rating)&.round(1) || 0.0
+    end
+
+    # Count of approved ratings
+    def ratings_count
+      approved_ratings.count
+    end
+
+    # Check if product has any ratings
+    def has_ratings?
+      ratings_count > 0
     end
     
     private  

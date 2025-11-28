@@ -9,6 +9,8 @@ A collection of elegant Ruby patterns and techniques for writing clean, maintain
 2. [The `ensure` Block Pattern](#the-ensure-block-pattern)
 3. [Dynamic Method Definition with `define_singleton_method`](#dynamic-method-definition-with-define_singleton_method)
 4. [Module Extension Pattern (`self.extended`)](#module-extension-pattern-selfextended)
+5. [ActiveRecord Joins: Using Table Names in Queries](#activerecord-joins-using-table-names-in-queries)
+6. [Prepending Modules: Self-Registering Pattern](#prepending-modules-self-registering-pattern)
 
 ---
 
@@ -445,6 +447,171 @@ end
 
 ---
 
+## ActiveRecord Joins: Using Table Names in Queries
+
+### Pattern Overview
+
+When using `joins` in ActiveRecord, use the actual database table name (not association names) in `where` clauses with parameterized queries.
+
+### Key Concept
+
+- **Association names** (`:master`, `:prices`) are for Rails associations
+- **Table names** (`spree_prices`, `spree_variants`) are for SQL queries
+- In `where` clauses, reference the actual table name from the database
+
+### Example
+
+```ruby
+# Joins use association names
+@products = @products.joins(master: :prices)
+
+# But where clauses use actual table names
+@products = @products.where("spree_prices.amount >= ?", min_price)
+```
+
+### Alternative Syntax
+
+You can also use hash syntax, which Rails converts automatically:
+
+```ruby
+# Hash syntax (Rails converts to table name)
+@products.joins(:taxons).where(spree_taxons: { id: category_id })
+
+# String with parameterized query
+@products.joins(master: :prices).where("spree_prices.amount >= ?", min_price)
+```
+
+### Real-World Example
+
+```ruby
+# From Solidus codebase
+Spree::User.joins(:spree_roles).where(spree_roles: { name: 'customer' }).first
+
+# Nested joins
+@products.joins(master: :prices).where("spree_prices.amount >= ?", min_price)
+```
+
+### Key Points
+
+- Use association names in `joins()` for Rails to build SQL
+- Use actual table names in `where()` clauses (often prefixed like `spree_`)
+- Parameterized queries (`?`) prevent SQL injection
+- Hash syntax automatically converts to table names
+
+---
+
+## Prepending Modules: Self-Registering Pattern
+
+### Pattern Overview
+
+A module that prepends itself to a class when loaded. Commonly used in Rails for extending models without modifying the original class.
+
+### Steps to Create a Prepended Module
+
+1. **Create a module**
+2. **Define `self.prepended(base)` block** - Runs when module is prepended
+3. **Add instance/class methods** - Methods that will be added to the target class
+4. **At the end, write `TargetClass.prepend self`** - Self-registration
+
+### Example
+
+```ruby
+module ProductFeaturedSimilarProducts
+  def self.prepended(base)
+    base.scope :featured, -> { where(featured: true) }
+  end
+
+  def similar_products(limit = 3)
+    taxons.map { |taxon| taxon.all_products_except(self.id) }
+          .flatten.uniq.first(limit)
+  end
+
+  Spree::Product.prepend self  # ← Self-registration at the end
+end
+```
+
+### Loading the Module
+
+Two ways to load:
+
+1. **Autoloading** (Rails default) - Loads when first referenced
+   - Works, but can have timing issues in development
+   - Less reliable for self-registering modules
+
+2. **`require_dependency`** (Recommended) - Explicit loading
+   ```ruby
+   # In the target class file (e.g., product.rb)
+   require_dependency 'overrides/product_featured_similar_products'
+   ```
+   - Loads immediately when class loads
+   - Properly reloads in development
+   - More reliable for self-registering modules
+
+### Wrapping Methods with `super`
+
+Prepend allows you to wrap existing methods by adding code before/after the original method:
+
+```ruby
+module ProductLogging
+  def self.prepended(base)
+    # Add new methods/scopes here
+  end
+
+  def save
+    # BEFORE: Add logic before original
+    Rails.logger.info "Saving product: #{name}"
+    
+    # Call original method
+    result = super
+    
+    # AFTER: Add logic after original
+    Rails.logger.info "Product saved: #{result}" if result
+    
+    result
+  end
+end
+
+Spree::Product.prepend ProductLogging
+```
+
+**Why prepend works for wrapping:**
+- Module comes FIRST in method lookup chain
+- `super` reliably finds the original class method
+- With `include`, `super` might not find the original method
+
+**Method execution flow:**
+```
+1. ProductLogging#save (wrapper) ← Runs first
+2. Calls super
+3. Product#save (original) ← Runs second
+4. Returns to wrapper
+```
+
+### The `::` Prefix
+
+The `::` at the start of a constant means "start from root namespace":
+
+```ruby
+Spree::Product      # Relative lookup (might find local Product)
+::Spree::Product    # Absolute lookup (always finds root Spree::Product)
+```
+
+**Why use `::`?**
+- Prevents shadowing by local constants
+- Guarantees you reference the correct class
+- Best practice in nested modules
+
+### Key Points
+
+- `self.prepended(base)` runs automatically when module is prepended
+- `self` at module level = the module itself
+- `self` inside instance methods = the instance (after prepend)
+- Use `require_dependency` for reliable loading in development
+- Use `::` prefix for absolute namespace lookup
+- Use `super` to call original method when wrapping
+
+---
+
 ## Summary
 
 These patterns are powerful tools for building flexible, maintainable Ruby code:
@@ -453,6 +620,8 @@ These patterns are powerful tools for building flexible, maintainable Ruby code:
 2. **`ensure` Blocks**: Guarantee cleanup code runs regardless of exceptions
 3. **`define_singleton_method`**: Dynamically create class methods at runtime
 4. **`self.extended`**: Initialize class-level state when modules are extended
+5. **ActiveRecord Joins**: Use table names (not association names) in `where` clauses with parameterized queries
+6. **Prepending Modules**: Self-registering pattern for extending classes with `self.prepended` and explicit loading
 
 Each pattern solves specific problems elegantly and is commonly used in production Ruby frameworks like Rails and Solidus.
 

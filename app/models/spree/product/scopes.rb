@@ -178,6 +178,17 @@ module Spree
             where("#{Spree::Product.quoted_table_name}.deleted_at IS NULL or #{Spree::Product.quoted_table_name}.deleted_at >= ?", Time.current)
           end
 
+          # Top rated products ordered by average rating
+          # Usage: Spree::Product.top_rated(10) # limit 10
+          add_search_scope :top_rated do |limit = 3|
+            left_joins(:products_ratings, :ratings)
+              .group("spree_products.id")
+              .order('avg_rating')
+              .limit(limit)
+              .select('spree_products.*, AVG(spree_ratings.rating) AS avg_rating')
+              .compact
+          end
+
           scope :with_master_price, -> do
             joins(:master).where(Spree::Price.where(Spree::Variant.arel_table[:id].eq(Spree::Price.arel_table[:variant_id])).arel.exists)
           end

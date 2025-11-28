@@ -10,7 +10,8 @@ A collection of debugging techniques and tricks for troubleshooting Rails applic
 3. [Call Stack Analysis](#call-stack-analysis)
 4. [State Machine Debugging](#state-machine-debugging)
 5. [ActiveRecord Debugging](#activerecord-debugging)
-6. [Common Patterns](#common-patterns)
+6. [Quick Cheat: How to Debug Migration Issues](#quick-cheat-how-to-debug-migration-issues)
+7. [Common Patterns](#common-patterns)
 
 ---
 
@@ -285,6 +286,227 @@ ActiveSupport::Notifications.subscribe('sql.active_record') do |*args|
   puts "SQL: #{event.payload[:sql]}"
 end
 ```
+
+---
+
+## Quick Cheat: How to Debug Migration Issues
+
+### Finding Table and Index Names
+
+When you need to rollback a migration or fix migration errors, you need to know the exact table and index names. Here are multiple methods:
+
+#### Method 1: Check the Migration File (Most Reliable)
+
+```bash
+# Find migration files
+find db/migrate -name "*your_table*"
+
+# Read the migration
+cat db/migrate/20251125134311_spree_products_rating.rb
+```
+
+Look for:
+- `create_table :table_name` → This is your table name
+- `add_index :table_name, [...], name: 'index_name'` → This is your index name
+
+#### Method 2: Check db/schema.rb
+
+```bash
+# Search for the table in schema
+grep -A 10 "create_table.*your_table" db/schema.rb
+
+# Search for indexes
+grep "add_index.*your_table" db/schema.rb
+```
+
+The schema file shows the current database structure after all migrations.
+
+#### Method 3: Query the Database via Rails
+
+```ruby
+# In Rails console
+bin/rails console
+
+# Check if table exists
+ActiveRecord::Base.connection.table_exists?('spree_products_spree_ratings')
+
+# Get all columns
+ActiveRecord::Base.connection.columns('spree_products_spree_ratings').map(&:name)
+
+# Get all indexes
+ActiveRecord::Base.connection.indexes('spree_products_spree_ratings').map(&:name)
+
+# List all tables
+ActiveRecord::Base.connection.tables.grep(/rating/)
+```
+
+#### Method 4: Use PostgreSQL Directly
+
+```bash
+# Connect to PostgreSQL
+psql -U your_username -d solidus_api_development
+
+# Describe the table
+\d spree_products_spree_ratings
+
+# Query system tables for indexes
+SELECT indexname FROM pg_indexes WHERE tablename = 'spree_products_spree_ratings';
+```
+
+#### Method 5: Check Migration Status
+
+```bash
+# See all migrations and their status
+bin/rails db:migrate:status
+
+# Find migrations that created a table
+grep -r "create_table.*your_table" db/migrate/
+```
+
+### Common Migration Errors and Fixes
+
+#### Error: `NameError: uninitialized constant SpreeProductsRating`
+
+**Problem:** Migration file contains model code instead of migration code.
+
+**Wrong:**
+```ruby
+module Spree
+  class SpreeProductsRating < Spree::Base  # ❌ This is a MODEL!
+    belongs_to :product
+  end
+end
+```
+
+**Correct:**
+```ruby
+class SpreeProductsRating < ActiveRecord::Migration[7.2]  # ✅ Migration class
+  def up
+    drop_table :spree_products_spree_ratings if table_exists?(:spree_products_spree_ratings)
+  end
+
+  def down
+    create_table :spree_products_spree_ratings do |t|
+      t.references :product, foreign_key: { to_table: :spree_products }
+      t.references :rating, foreign_key: { to_table: :spree_ratings }
+      t.timestamps
+    end
+    add_index :spree_products_spree_ratings, [:product_id, :rating_id], unique: true
+  end
+end
+```
+
+#### Error: `PG::UndefinedTable: ERROR: relation "spree_spree_products_spree_ratings" does not exist`
+
+**Problem:** Rails is inferring wrong table name (double namespace prefix).
+
+**Solution:** Explicitly set table name in the model:
+
+```ruby
+module Spree
+  class SpreeProductsSpreeRating < Spree::Base
+    self.table_name = 'spree_products_spree_ratings'  # ✅ Explicit table name
+    belongs_to :product
+    belongs_to :rating
+  end
+end
+```
+
+**Why:** When class name starts with namespace name (`Spree::SpreeProductsSpreeRating`), Rails adds namespace prefix twice, creating `spree_spree_products_spree_ratings` instead of `spree_products_spree_ratings`.
+
+### Rollback Commands Cheat Sheet
+
+```bash
+# Rollback last migration
+bin/rails db:rollback
+
+# Rollback multiple steps
+bin/rails db:rollback STEP=3
+
+# Rollback to specific version
+bin/rails db:migrate VERSION=20251118110548
+
+# Rollback specific migration
+bin/rails db:migrate:down VERSION=20251125134311
+
+# Re-run specific migration
+bin/rails db:migrate:up VERSION=20251125134311
+
+# Check migration status
+bin/rails db:migrate:status
+```
+
+### Migration Debugging Workflow
+
+1. **Check what's applied:**
+   ```bash
+   bin/rails db:migrate:status
+   ```
+
+2. **Find the migration file:**
+   ```bash
+   find db/migrate -name "*your_table*"
+   cat db/migrate/YYYYMMDDHHMMSS_migration_name.rb
+   ```
+
+3. **Check current database state:**
+   ```ruby
+   # Rails console
+   ActiveRecord::Base.connection.table_exists?('table_name')
+   ActiveRecord::Base.connection.indexes('table_name')
+   ```
+
+4. **Fix the migration file** (if needed):
+   - Ensure it's a migration class, not a model
+   - Check table names match
+   - Verify `up` and `down` methods exist
+
+5. **Test rollback:**
+   ```bash
+   bin/rails db:rollback
+   ```
+
+6. **Re-run if needed:**
+   ```bash
+   bin/rails db:migrate
+   ```
+
+### Quick Reference: Finding Table/Index Names
+
+```bash
+# 1. Find migration files
+find db/migrate -name "*your_table*"
+
+# 2. Check schema
+grep "create_table.*your_table" db/schema.rb
+
+# 3. Rails console
+bin/rails runner "puts ActiveRecord::Base.connection.tables.grep(/your_table/)"
+
+# 4. PostgreSQL
+psql -d your_database -c "\d your_table_name"
+```
+
+### Common Mistakes to Avoid
+
+❌ **Don't put model code in migration files**
+- Migrations should only contain database schema changes
+- Models should be in `app/models/`
+
+❌ **Don't forget to set `self.table_name` for namespaced models**
+- If class name starts with namespace name, explicitly set table name
+
+❌ **Don't rollback in production without backup**
+- Always backup database before rollback in production
+
+✅ **Do check migration status before rollback**
+- `bin/rails db:migrate:status` shows what's applied
+
+✅ **Do test migrations in development first**
+- Test both `up` and `down` methods
+
+✅ **Do keep migration files simple**
+- One migration = one logical change
 
 ---
 

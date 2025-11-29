@@ -14,7 +14,7 @@ module Api
 
     def show
       render json: @order.as_json(include: [
-        {line_items: { include: { product: { include: :images } } }}, 
+        {line_items: { include: { product: { include: { images: { only: [:alt], methods: [:attachment_url] } } } } }}, 
         :bill_address, 
         :ship_address,
         { shipments: { include: :shipping_rates } },
@@ -59,6 +59,7 @@ module Api
   private
 
     def set_order
+      return unless @order.nil?
       @order = Spree::Order.find(params[:id]) unless params[:id] == 'current'
     end
 

@@ -602,6 +602,114 @@ end
 
 ---
 
+## Zeitwerk Autoloading Debugging
+
+### Checking Zeitwerk Autoloading Issues
+
+When deploying or running in production, Zeitwerk (Rails' autoloader) may fail to load constants. Use this command to check for autoloading issues:
+
+```bash
+# Check Zeitwerk autoloading in production environment
+RAILS_ENV=production SECRET_KEY_BASE=dummy rails zeitwerk:check
+```
+
+**Note:** You may need to provide a `SECRET_KEY_BASE` even for checking, as some initializers require it. Use a dummy value if you don't have the production key locally.
+
+### Common Zeitwerk Errors
+
+#### Error: `invalid configuration option :public_url`
+
+**Problem:** Using an invalid option in `config/storage.yml` or other configuration files.
+
+**Solution:** Remove invalid options. For example, `public_url` is not a valid option for Active Storage S3 service in Rails 7.2. Use an initializer instead:
+
+```ruby
+# config/initializers/active_storage_cloudfront.rb
+if Rails.env.production? && Rails.application.config.active_storage.service == :amazon
+  ActiveSupport.on_load(:active_storage_blob) do
+    require 'active_storage/service/s3_service'
+    
+    ActiveStorage::Service::S3Service.class_eval do
+      alias_method :original_url, :url
+      
+      def url(key, expires_in:, filename:, disposition:, content_type:)
+        cloudfront_base = ENV.fetch("CLOUDFRONT_URL", "https://d3687nk8qb4e0v.cloudfront.net").chomp("/")
+        "#{cloudfront_base}/#{key}"
+      end
+    end
+  end
+end
+```
+
+#### Error: `uninitialized constant ActiveStorage::Service::S3Service`
+
+**Problem:** Trying to access a constant before it's loaded in an initializer.
+
+**Solution:** Use `ActiveSupport.on_load` to ensure the constant is loaded:
+
+```ruby
+# ❌ Wrong - constant not loaded yet
+ActiveStorage::Service::S3Service.class_eval do
+  # ...
+end
+
+# ✅ Correct - wait for constant to load
+ActiveSupport.on_load(:active_storage_blob) do
+  require 'active_storage/service/s3_service'
+  ActiveStorage::Service::S3Service.class_eval do
+    # ...
+  end
+end
+```
+
+#### Error: `NameError: uninitialized constant`
+
+**Problem:** File naming doesn't match constant name, or constant is referenced before it's loaded.
+
+**Solutions:**
+1. Ensure file names match constant names (e.g., `user_profile.rb` → `UserProfile` class)
+2. Don't manually require files in autoload paths
+3. Use `ActiveSupport.on_load` hooks for initializers that modify classes
+4. Check that all directories are in `config.eager_load_paths` if needed
+
+### Zeitwerk Debugging Workflow
+
+1. **Run Zeitwerk check:**
+   ```bash
+   RAILS_ENV=production SECRET_KEY_BASE=dummy rails zeitwerk:check
+   ```
+
+2. **If errors occur, check:**
+   - Configuration files for invalid options
+   - Initializers that modify classes (use `on_load` hooks)
+   - File naming matches constant names
+   - All required constants are loaded before use
+
+3. **Fix the issue:**
+   - Remove invalid configuration options
+   - Use proper loading hooks in initializers
+   - Fix file/constant naming mismatches
+
+4. **Re-run check:**
+   ```bash
+   RAILS_ENV=production SECRET_KEY_BASE=dummy rails zeitwerk:check
+   ```
+
+### Quick Reference: Zeitwerk Commands
+
+```bash
+# Check autoloading (development)
+rails zeitwerk:check
+
+# Check autoloading (production - requires SECRET_KEY_BASE)
+RAILS_ENV=production SECRET_KEY_BASE=dummy rails zeitwerk:check
+
+# Check with specific environment variables
+RAILS_ENV=production SECRET_KEY_BASE=your_key rails zeitwerk:check
+```
+
+---
+
 ## Quick Reference
 
 ### Exception Handling Cheat Sheet

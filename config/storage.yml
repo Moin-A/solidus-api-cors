@@ -14,8 +14,6 @@ amazon:
   secret_access_key: <%= ENV.fetch("AWS_SECRET_ACCESS_KEY") { Rails.application.credentials.dig(:aws, :secret_access_key) } %>
   region: <%= ENV.fetch("AWS_REGION", "us-east-1") %>
   bucket: <%= ENV.fetch("AWS_S3_BUCKET", "solidus-storage-#{Rails.env}") %>
-  # Use CloudFront CDN instead of direct S3 URLs
-  public_url: <%= ENV.fetch("CLOUDFRONT_URL", "https://d3687nk8qb4e0v.cloudfront.net") %>
 
 # Remember not to checkin your GCS keyfile to a repository
 # google:

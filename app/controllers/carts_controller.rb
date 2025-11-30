@@ -33,10 +33,10 @@ class CartsController < StoreController
                   include: {
                     product: {
                       include: {
-                        images: { methods: [:url] }
+                        images: { methods: [:attachment_url] }
                       }
                     },
-                    images: { methods: [:url] }
+                    images: { methods: [:attachment_url] }
                   }
                 }
               }

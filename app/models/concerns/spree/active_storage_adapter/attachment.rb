@@ -48,7 +48,9 @@ module Spree
         end
         
         # Create variant with transformation options
-        # Note: saver options like strip are handled by ActiveStorage when using image_processing
+        # Image size reduction is achieved through:
+        # 1. Smaller dimensions (configured in config/initializers/spree.rb)
+        # 2. Format conversion happens automatically by Active Storage when needed
         @attachment.variant(transformation).processed
       rescue => e
         Rails.logger.error("Failed to create variant: #{e.message}")

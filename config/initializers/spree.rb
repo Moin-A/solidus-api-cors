@@ -20,6 +20,16 @@ Spree.config do |config|
   # Configure adapter for attachments on products and taxons (use ActiveStorageAttachment or PaperclipAttachment)
   config.image_attachment_module = 'Spree::Image::ActiveStorageAttachment'
   config.taxon_attachment_module = 'Spree::Taxon::ActiveStorageAttachment'
+  
+  # Reduce image sizes to save storage and bandwidth
+  # You can adjust these dimensions based on your needs
+  # Format: 'WIDTHxHEIGHT>' means resize to fit within dimensions while maintaining aspect ratio
+  config.product_image_styles = {
+    mini: '48x48>',
+    small: '300x300>',      # Reduced from 400x400
+    product: '600x600>',    # Reduced from 680x680
+    large: '1000x1000>'    # Reduced from 1200x1200
+  }
 
   # Disable stock splitters to ensure all items ship in a single shipment
   # By default, Solidus splits shipments by shipping_category and backorder status

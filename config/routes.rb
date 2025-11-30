@@ -108,7 +108,15 @@ Rails.application.routes.draw do
     get 'profile', to: 'users#profile'
     get 'addresses', to: 'users#addresses'
     post 'addresses', to: 'users#create_address'
-    resources :users, only: [:show, :update]
+    
+    resources :users, only: [:show, :update] do
+      recources :orders, only: [:index, :show] do
+        member do
+          post 'review_product'
+        end
+      end
+    end
+
     
     # Search
     get 'search/products', to: 'search#products'

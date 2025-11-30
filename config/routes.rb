@@ -110,7 +110,7 @@ Rails.application.routes.draw do
     post 'addresses', to: 'users#create_address'
     
     resources :users, only: [:show, :update] do
-      recources :orders, only: [:index, :show] do
+      resources :orders, only: [:index, :show] do
         member do
           post 'review_product'
         end

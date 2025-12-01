@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_11_26_104123) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_01_190445) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -519,16 +519,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_26_104123) do
     t.index ["slug"], name: "index_spree_products_on_slug", unique: true
   end
 
-  create_table "spree_products_ratings", force: :cascade do |t|
-    t.bigint "product_id"
-    t.bigint "rating_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["product_id", "rating_id"], name: "index_spree_products_ratings_on_product_id_and_rating_id", unique: true
-    t.index ["product_id"], name: "index_spree_products_ratings_on_product_id"
-    t.index ["rating_id"], name: "index_spree_products_ratings_on_rating_id"
-  end
-
   create_table "spree_products_taxons", id: :serial, force: :cascade do |t|
     t.integer "product_id"
     t.integer "taxon_id"
@@ -676,6 +666,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_26_104123) do
     t.integer "rating", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "line_item_id"
+    t.index ["line_item_id"], name: "index_spree_ratings_on_line_item_id"
   end
 
   create_table "spree_refund_reasons", id: :serial, force: :cascade do |t|
@@ -1303,12 +1295,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_11_26_104123) do
   add_foreign_key "spree_product_properties", "spree_properties", column: "property_id"
   add_foreign_key "spree_products", "spree_shipping_categories", column: "shipping_category_id"
   add_foreign_key "spree_products", "spree_taxons", column: "primary_taxon_id"
-  add_foreign_key "spree_products_ratings", "spree_products", column: "product_id"
-  add_foreign_key "spree_products_ratings", "spree_ratings", column: "rating_id"
   add_foreign_key "spree_products_taxons", "spree_products", column: "product_id"
   add_foreign_key "spree_products_taxons", "spree_taxons", column: "taxon_id"
   add_foreign_key "spree_promotion_code_batches", "spree_promotions", column: "promotion_id"
   add_foreign_key "spree_promotion_codes", "spree_promotion_code_batches", column: "promotion_code_batch_id"
+  add_foreign_key "spree_ratings", "spree_line_items", column: "line_item_id"
   add_foreign_key "spree_roles_users", "spree_roles", column: "role_id"
   add_foreign_key "spree_shipping_method_categories", "spree_shipping_categories", column: "shipping_category_id"
   add_foreign_key "spree_shipping_method_categories", "spree_shipping_methods", column: "shipping_method_id"

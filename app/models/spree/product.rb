@@ -34,8 +34,6 @@ module Spree
     belongs_to :shipping_category, class_name: 'Spree::ShippingCategory', inverse_of: :products, optional: true
     belongs_to :primary_taxon, class_name: 'Spree::Taxon', optional: true
 
-    has_many :products_ratings, dependent: :destroy, inverse_of: :product
-    has_many :ratings, through: :products_ratings, dependent: :destroy
 
     has_one :master,
       -> { where(is_master: true).with_discarded },

@@ -87,6 +87,7 @@ Rails.application.routes.draw do
     resources :orders, only: [:index, :show, :create, :update, :destroy] do
       member do
         get 'available_shipping_methods'
+        post 'review_product'
       end
     end
     
@@ -109,13 +110,7 @@ Rails.application.routes.draw do
     get 'addresses', to: 'users#addresses'
     post 'addresses', to: 'users#create_address'
     
-    resources :users, only: [:show, :update] do
-      resources :orders, only: [:index, :show] do
-        member do
-          post 'review_product'
-        end
-      end
-    end
+    resources :users, only: [:show, :update]
 
     
     # Search

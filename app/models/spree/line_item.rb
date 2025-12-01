@@ -17,6 +17,7 @@ module Spree
     belongs_to :tax_category, class_name: "Spree::TaxCategory", optional: true
 
     has_one :product, through: :variant
+    has_one :rating, dependent: :destroy, inverse_of: :line_item
 
     has_many :adjustments, as: :adjustable, inverse_of: :adjustable, dependent: :destroy
     has_many :inventory_units, inverse_of: :line_item

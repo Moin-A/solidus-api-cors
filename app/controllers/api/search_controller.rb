@@ -58,9 +58,9 @@ module Api
                   default_price: { only: [:amount, :currency] }
                 }
               },
-            
-              images: { methods: [:url] }
-            
+
+              images: { methods: [:attachment_url] }
+
           }
         ),
         pagination: {

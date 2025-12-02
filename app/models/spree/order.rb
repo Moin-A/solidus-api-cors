@@ -835,7 +835,7 @@ module Spree
       end
     end
 
-    def ensure_available_shipping_rates
+    def ensure_available_shipping_rates    
       if shipments.empty? || shipments.any? { |shipment| shipment.shipping_rates.blank? }
         # After this point, order redirects back to 'address' state and asks user to pick a proper address
         # Therefore, shipments are not necessary at this point.

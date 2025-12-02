@@ -181,12 +181,14 @@ module Spree
           # Top rated products ordered by average rating
           # Usage: Spree::Product.top_rated(10) # limit 10
           add_search_scope :top_rated do |limit = 3|
-            left_joins(:products_ratings, :ratings)
+            
+            left_joins(:product_ratings)
               .group("spree_products.id")
+              .select("spree_products.*, AVG(spree_ratings.rating) as avg_rating")
+              .having("AVG(spree_ratings.rating) IS NOT NULL")
               .order('avg_rating')
               .limit(limit)
-              .select('spree_products.*, AVG(spree_ratings.rating) AS avg_rating')
-              .compact
+              .select('spree_products.*, AVG(spree_ratings.rating) AS avg_rating')            
           end
 
           scope :with_master_price, -> do

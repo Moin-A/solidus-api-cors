@@ -38,6 +38,20 @@ module Api
 
     end
 
+    def review_product
+      line_item = Spree::LineItem.find(params[:lineItemId])
+      rating_value = params[:rating].to_i
+
+      rating = Spree::Rating.new(line_item: line_item, rating: rating_value)
+
+      if rating.save
+        render json: { message: 'Rating submitted successfully' }, status: :created
+      else
+        render json: { errors: rating.errors.full_messages }, status: :unprocessable_entity
+      end
+
+    end  
+
     def create
       @order = Spree::Order.create(user: current_user, store: Spree::Store.default)
       render json: @order.as_json(include: [:line_items]), status: :created

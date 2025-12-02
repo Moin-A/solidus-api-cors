@@ -2,8 +2,7 @@
 
 module Spree
   class Rating < Spree::Base
-    has_many :products_ratings, dependent: :destroy, inverse_of: :rating
-    has_many :products, through: :products_ratings
+    belongs_to :line_item, inverse_of: :rating, optional: true
 
     validates_inclusion_of :rating, in: 0..5, message: 'must be between 0 and 5'
   end 

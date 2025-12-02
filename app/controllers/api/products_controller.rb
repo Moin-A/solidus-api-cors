@@ -115,13 +115,14 @@ module Api
       key = params[:taxon_id] || params[:permalink]  
       cache_key = "top_rated_products_taxon_#{key}"
       @taxon = Spree::Taxon.find_by(permalink: key)
+      
       if @taxon.nil?
         render json: {error: "Taxon not found"}, status: :not_found
-      else      
-        @top_rated_products = Rails.cache.fetch(cache_key, expires_in: 1.hour) do       
-          @taxon.top_rated_products(limit: 3)
-        end
-        render json: @top_rated_products.as_json(include: [:master, images: { methods: [:attachment_url] }])
+      else
+       
+       @top_rated_products =  @taxon.top_rated_products(limit: 3)
+  
+       render json: @top_rated_products.as_json(include: [:master, images: { methods: [:attachment_url] }])
       end
     end
 

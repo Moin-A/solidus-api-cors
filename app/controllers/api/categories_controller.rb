@@ -20,7 +20,10 @@ module Api
       if @category.nil?
         render json: {error: "Category notFound"}, status: :not_found
       else
-        render json: @category.as_json
+        binding.pry
+        render json: @category.as_json.merge(
+          attachment_url: @category.attachment_url
+        )
       end
     end
 

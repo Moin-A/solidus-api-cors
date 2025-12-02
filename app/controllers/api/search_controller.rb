@@ -12,6 +12,7 @@ module Api
       min_price, max_price = params[:price_range].split(",").map(&:to_i) if params[:price_range].present?
       sort_by = params[:sort_by] || 'name'
       sort_order = params[:sort_order] || 'asc'
+      in_stock = params[:in_stock] || false
       # Apply price filter
       # binding.pry
       @products = Spree::Product.includes(:taxons, master: :images, variants: :images).where(spree_taxons: { permalink: params[:perma_link] }).available
@@ -25,6 +26,10 @@ module Api
       # Apply category filter
       if category_id.present?
         @products = @products.joins(:taxons).where(spree_taxons: { id: category_id })
+      end
+
+      if in_stock
+        @products = @products.joins(:stock_items).where("spree_stock_items.count_on_hand > 0")
       end
 
 

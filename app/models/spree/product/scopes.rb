@@ -186,7 +186,7 @@ module Spree
               .group("spree_products.id")
               .select("spree_products.*, AVG(spree_ratings.rating) as avg_rating")
               .having("AVG(spree_ratings.rating) IS NOT NULL")
-              .order('avg_rating')
+              .order('avg_rating DESC')
               .limit(limit)
               .select('spree_products.*, AVG(spree_ratings.rating) AS avg_rating')            
           end

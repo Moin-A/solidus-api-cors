@@ -3,7 +3,7 @@
 module Spree
   class Rating < Spree::Base
     belongs_to :line_item, inverse_of: :rating, optional: true
-    belongs_to :user, inverse_of: :rating
+    belongs_to :user, inverse_of: :ratings
 
     validates_inclusion_of :rating, in: 0..5, message: 'must be between 0 and 5'
   end 

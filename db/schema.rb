@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_12_01_190445) do
+ActiveRecord::Schema[7.2].define(version: 2025_12_04_165028) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -667,7 +667,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_01_190445) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "line_item_id"
+    t.bigint "user_id"
     t.index ["line_item_id"], name: "index_spree_ratings_on_line_item_id"
+    t.index ["user_id"], name: "idx_ratings_on_user_id"
   end
 
   create_table "spree_refund_reasons", id: :serial, force: :cascade do |t|
@@ -1300,6 +1302,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_12_01_190445) do
   add_foreign_key "spree_promotion_code_batches", "spree_promotions", column: "promotion_id"
   add_foreign_key "spree_promotion_codes", "spree_promotion_code_batches", column: "promotion_code_batch_id"
   add_foreign_key "spree_ratings", "spree_line_items", column: "line_item_id"
+  add_foreign_key "spree_ratings", "spree_users", column: "user_id"
   add_foreign_key "spree_roles_users", "spree_roles", column: "role_id"
   add_foreign_key "spree_shipping_method_categories", "spree_shipping_categories", column: "shipping_category_id"
   add_foreign_key "spree_shipping_method_categories", "spree_shipping_methods", column: "shipping_method_id"

@@ -22,7 +22,8 @@ module Api
 
         render json: {
           products: @products.as_json(
-            include: {             
+            include: {    
+              product_ratings: {},
               taxons:  {},
               master:  {
                 include: {

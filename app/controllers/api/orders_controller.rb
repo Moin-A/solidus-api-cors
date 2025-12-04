@@ -42,7 +42,7 @@ module Api
       line_item = Spree::LineItem.find(params[:lineItemId])
       rating_value = params[:rating].to_i
 
-      rating = Spree::Rating.new(line_item: line_item, rating: rating_value)
+      rating = Spree::Rating.new(line_item: line_item, rating: rating_value, user: current)
 
       if rating.save
         render json: { message: 'Rating submitted successfully' }, status: :created

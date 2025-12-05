@@ -6,7 +6,7 @@
 Kaminari.configure do |config|
   # Default number of items per page
   # Default: 25
-  config.default_per_page = 8
+  config.default_per_page = 6
   
   # Maximum number of items per page (prevents requesting too many items)
   # Default: nil (no limit)

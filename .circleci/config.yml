@@ -104,6 +104,9 @@ jobs:
             
             echo "Booting redis accessory..."
             kamal accessory boot redis || echo "Redis might already be running"
+
+            echo "Booting elasticsearch accessory..."
+            kamal accessory boot elasticsearch || echo "Redis might already be running"
             
 
       # Step 8.5: Boot Traefik with SSL configuration

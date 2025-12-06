@@ -1,21 +1,51 @@
 # frozen_string_literal: true
 
-module Spree
-  # Products represent an entity for sale in a store. Products can have
-  # variations, called variants. Product properties include description,
-  # permalink, availability, shipping category, etc. that do not change by
-  # variant.
-  class Product < Spree::Base
-    extend FriendlyId
-    friendly_id :slug_candidates, use: :history
+  module Spree
+    # Products represent an entity for sale in a store. Products can have
+    # variations, called variants. Product properties include description,
+    # permalink, availability, shipping category, etc. that do not change by
+    # variant.
+    class Product < Spree::Base
+      extend FriendlyId
+      friendly_id :slug_candidates, use: :history
 
-    include Spree::SoftDeletable
+      include Spree::SoftDeletable
+      include Elasticsearch::Model
+      include Elasticsearch::Model::Callbacks
 
     after_discard do
       variants_including_master.discard_all
       self.product_option_types = []
       self.product_properties = []
       self.classifications.destroy_all
+    end
+
+    settings index: {
+      number_of_shards: 1,
+      number_of_replicas: 0,
+      analysis: {
+        analyzer: {
+          autocomplete_analyzer: {
+            tokenizer: "standard",
+            filter: ["lowercase", "autocomplete_filter"]
+          }
+        },
+        filter: {
+          autocomplete_filter: {
+            type: "edge_ngram",
+            min_gram: 1,
+            max_gram: 20
+          }
+        }
+      }
+    } do
+      mappings dynamic: false do
+        indexes :name,        type: "text", analyzer: "autocomplete_analyzer"
+        indexes :description, type: "text"
+        indexes :price,       type: "float"
+
+        indexes :suggest, type: "completion"
+      end
     end
 
     has_many :product_option_types, dependent: :destroy, inverse_of: :product

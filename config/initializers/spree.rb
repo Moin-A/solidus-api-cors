@@ -9,6 +9,8 @@ Spree.config do |config|
   # Default currency for new sites
   config.currency = "INR"
 
+  config.searcher_class = 'Spree::Search::Elasticsearch'
+
   # Uncomment to stop tracking inventory levels in the application
   # config.track_inventory_levels = false
 

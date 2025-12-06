@@ -1025,6 +1025,114 @@ Spree::Product      # Relative lookup (might find local Product)
 
 ---
 
+## ActiveRecord Inverse Associations (`inverse_of`)
+
+### Pattern Overview
+
+The `inverse_of` option tells Rails about the other side of a bidirectional association. **The value must EXACTLY match the association name on the other model**, not the table name or class name.
+
+### The Golden Rule
+
+**`inverse_of` is always the name you reference the association with, not the class or table name.**
+
+If you use a custom association name (different from the default), `inverse_of` must use that custom name.
+
+### Common Mistake
+
+```ruby
+# ❌ WRONG: Using default name when custom name exists
+class Rating < ApplicationRecord
+  belongs_to :user, inverse_of: :ratings  # ❌ User doesn't have :ratings
+end
+
+class User < ApplicationRecord
+  has_many :product_ratings, class_name: "Rating"  # Custom name!
+end
+
+# Error: Could not find the inverse association for user (:ratings in User)
+```
+
+### Correct Pattern
+
+```ruby
+# ✅ CORRECT: Match the ACTUAL association name
+class Rating < ApplicationRecord
+  belongs_to :user, inverse_of: :product_ratings  # ✅ Matches has_many name
+end
+
+class User < ApplicationRecord
+  has_many :product_ratings, class_name: "Rating", inverse_of: :user
+end
+```
+
+### Why It Matters
+
+Rails uses inverse associations to:
+- **Avoid duplicate queries**: Reuse already-loaded objects
+- **Maintain consistency**: Both sides of association point to same object in memory
+- **Improve performance**: Reduce database round-trips
+
+### Examples
+
+**Example 1: Standard naming (no inverse_of needed)**
+```ruby
+class User < ApplicationRecord
+  has_many :ratings  # Standard name
+end
+
+class Rating < ApplicationRecord
+  belongs_to :user  # Rails auto-detects inverse
+end
+```
+
+**Example 2: Custom naming (inverse_of required)**
+```ruby
+class User < ApplicationRecord
+  has_many :product_ratings, class_name: "Rating", inverse_of: :user
+end
+
+class Rating < ApplicationRecord
+  belongs_to :user, inverse_of: :product_ratings  # Must match :product_ratings
+end
+```
+
+**Example 3: Through associations**
+```ruby
+class Product < ApplicationRecord
+  has_many :classifications, inverse_of: :product
+  has_many :taxons, through: :classifications
+end
+
+class Classification < ApplicationRecord
+  belongs_to :product, inverse_of: :classifications  # Matches has_many name
+  belongs_to :taxon, inverse_of: :classifications
+end
+
+class Taxon < ApplicationRecord
+  has_many :classifications, inverse_of: :taxon
+  has_many :products, through: :classifications
+end
+```
+
+### Debugging Checklist
+
+When you see: `Could not find the inverse association for X (:Y in Z)`
+
+1. ✅ Check association name on other model - does `:Y` exist?
+2. ✅ Is it a custom name? Use `inverse_of` with that exact name
+3. ✅ Did you misspell singular/plural? (`rating` vs `ratings`)
+4. ✅ Check class_name matches the correct model
+
+### Key Points
+
+- **Match the association name**, not the class or table name
+- If `has_many :product_ratings`, use `inverse_of: :product_ratings`
+- If `belongs_to :owner, class_name: "User"`, the User should have association with `inverse_of: :owner`
+- Rails auto-detects inverse for standard naming (e.g., `User` ↔ `has_many :users`)
+- Always specify `inverse_of` for custom association names
+
+---
+
 ## Summary
 
 These patterns are powerful tools for building flexible, maintainable Ruby code:
@@ -1035,6 +1143,7 @@ These patterns are powerful tools for building flexible, maintainable Ruby code:
 4. **`self.extended`**: Initialize class-level state when modules are extended
 5. **ActiveRecord Joins**: Use table names (not association names) in `where` clauses with parameterized queries
 6. **Prepending Modules**: Self-registering pattern for extending classes with `self.prepended` and explicit loading
+7. **Inverse Associations**: `inverse_of` must match the exact association name, especially with custom names
 
 Each pattern solves specific problems elegantly and is commonly used in production Ruby frameworks like Rails and Solidus.
 

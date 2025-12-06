@@ -108,3 +108,7 @@ end
 gem "solidus_paypal_commerce_platform", "~> 1.0"
 
 gem "solidus_admin", ">= 0.2"
+
+gem "elasticsearch-rails", "~> 8.0"
+
+gem "elasticsearch-model", "~> 8.0"

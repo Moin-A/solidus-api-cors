@@ -116,6 +116,7 @@ env:
     # SMTP Configuration (address and port can be overridden via env vars if needed)
     SMTP_ADDRESS: email-smtp.eu-north-1.amazonaws.com
     SMTP_PORT: 587
+    ELASTICSEARCH_URL: http://172.17.0.1:9200  
     # AWS S3 Storage Configuration
     # AWS credentials should be set via environment variables or Rails credentials
     AWS_REGION: <%= ENV.fetch("AWS_REGION", "us-east-1") %>

@@ -162,11 +162,18 @@ module Api
         total: search_results.total,
         query: query
       }
-    rescue Elasticsearch::Transport::Transport::Error => e
-      render json: { 
-        error: "Elasticsearch error: #{e.message}",
-        products: []
-      }, status: :service_unavailable
+    rescue StandardError => e
+      # Catch Elasticsearch errors (connection, transport, etc.)
+      # Check if it's an Elasticsearch-related error by class name
+      if e.class.name.include?('Elasticsearch') || e.class.name.include?('Faraday')
+        render json: { 
+          error: "Elasticsearch error: #{e.message}",
+          products: []
+        }, status: :service_unavailable
+      else
+        # Re-raise non-Elasticsearch errors
+        raise
+      end
     end  
   end
 end       

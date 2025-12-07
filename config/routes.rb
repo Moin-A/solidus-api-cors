@@ -116,6 +116,7 @@ Rails.application.routes.draw do
     # Search
     get 'search/products', to: 'search#products'
     get 'search/suggestions', to: 'search#suggestions'
+    get 'search/elasticsearch', to: 'search#elasticsearch_products'
     
     # Additional e-commerce endpoints
     get 'countries', to: 'countries#index'

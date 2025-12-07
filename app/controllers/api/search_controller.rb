@@ -109,25 +109,28 @@ module Api
     def elasticsearch_products
       query = params[:query]
 
-    # Use Elasticsearch
-    search_results = Spree::Product.search(
-      query: {
-        multi_match: {
-          query: query,
-          fields: ['name^5', 'description']
-        }
-      }
-    )
+      # If no query, return all products (or empty)
     
-    @products = search_results.records.to_a  # Convert ES results to ActiveRecord
-    # ... rest of your code
-    render json: {
-      products: @products.as_json(include: 
-        {            
-          images: { methods: [:attachment_url] }
-        }
-      )
-    }    
-   end  
+        # Use Elasticsearch
+        search_results = Spree::Product.search(
+          query: {
+            multi_match: {
+              query: query,
+              fields: ['name^5', 'description'],
+              fuzziness: 'AUTO'
+            }
+          },         
+        )
+        
+      @products = search_results.records.includes(:images)
+
+      render json: {
+        products: @products.as_json(include: 
+          {                       
+            images: { methods: [:attachment_url] }
+          }
+        ),               
+      }
+    end  
   end
 end       

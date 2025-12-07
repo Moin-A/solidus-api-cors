@@ -108,29 +108,65 @@ module Api
 
     def elasticsearch_products
       query = params[:query]
+      return render json: { products: [] } if query.blank?
 
-      # If no query, return all products (or empty)
-    
-        # Use Elasticsearch
-        search_results = Spree::Product.search(
-          query: {
-            multi_match: {
-              query: query,
-              fields: ['name^5', 'description'],
-              fuzziness: 'AUTO'
-            }
-          },         
-        )
+      # Use Elasticsearch with precise matching
+      search_results = Spree::Product.search(
+        query: {
+          bool: {
+            should: [
+              {
+                # Exact phrase match in name (highest priority)
+                match_phrase: {
+                  name: {
+                    query: query,
+                    boost: 10
+                  }
+                }
+              },
+              {
+                # Match all words in name (all words must be present)
+                match: {
+                  name: {
+                    query: query,
+                    operator: 'and',
+                    boost: 5
+                  }
+                }
+              },
+              {
+                # Match in description (lower priority, at least 50% of words)
+                match: {
+                  description: {
+                    query: query,
+                    minimum_should_match: '50%',
+                    boost: 1
+                  }
+                }
+              }
+            ],
+            minimum_should_match: 1
+          }
+        },
+        min_score: 0.5  # Filter out very low relevance results
+      )
         
       @products = search_results.records.includes(:images)
 
       render json: {
         products: @products.as_json(include: 
-          {                       
+          {
             images: { methods: [:attachment_url] }
           }
-        ),               
+        ),
+        total: search_results.total,
+        query: query
       }
+    rescue Elasticsearch::Transport::Transport::Error => e
+      render json: { 
+        error: "Elasticsearch error: #{e.message}",
+        products: []
+      }, status: :service_unavailable
     end  
   end
 end       

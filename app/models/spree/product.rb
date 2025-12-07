@@ -207,17 +207,23 @@
     end
 
     def as_indexed_json(options = {})
-    {
-      id: id,
-      name: name,
-      description: description,
-      price: master&.price,           # optional
-      taxon_ids: taxons.pluck(:id),   # optional filtering
-      suggest: {
-        input: [name],
-        weight: 10
+      {
+        id: id,
+        name: name,
+        slug: slug,
+        description: description,
+        price: master&.price&.amount&.to_f,
+        taxon_ids: taxons.pluck(:id),
+        suggest: {
+          input: [name],
+          weight: 10
+        }
       }
-    }
+    end
+
+    # Elasticsearch search method
+    def self.search(query_hash)
+      __elasticsearch__.search(query_hash)
     end
 
     # Determines if product is available. A product is available if it has not

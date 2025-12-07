@@ -178,10 +178,11 @@ accessories:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.19.7
     host: <%= ENV["EC2_IP"] %>
-    ports: 9200    
+    ports: 9200
     env:
       clear:
         discovery.type: single-node
         ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+        xpack.security.enabled: "false"
     directories:
       - data:/usr/share/elasticsearch/data    

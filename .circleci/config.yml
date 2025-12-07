@@ -95,6 +95,13 @@ jobs:
           command: |
              ssh -i ~/.ssh/kamal-deploy-key.pem -o ConnectTimeout=10 ec2-user@$EC2_IP "sudo systemctl stop httpd || true && sudo systemctl stop nginx || true"
 
+      # Step 7.5: Push Environment Variables (CRITICAL: Must happen BEFORE booting accessories)
+      - run:
+          name: Push Environment Variables
+          command: |
+             echo "Pushing environment variables..."
+             kamal env push
+
       # Step 8: Boot Accessories (Database & Redis)
       - run:
           name: Boot Database and Redis
@@ -136,15 +143,7 @@ jobs:
             
             KAMAL_VERSION=$(git rev-parse HEAD)
             
-            # Explicitly push environment variables
-            echo "Pushing environment variables..."
-            kamal env push
-            
-            # Debug: Verify env file exists on remote
-            echo "Verifying remote env file..."
-            ssh -i ~/.ssh/kamal-deploy-key.pem ec2-user@$EC2_IP "ls -la .kamal/env/roles/" || echo "❌ Remote env file missing!"
-            
-            # Use --skip-push since we pushed manually
+            # Use --skip-push since we pushed manually in Step 7.5
             kamal deploy --skip-push --version $KAMAL_VERSION
 
 workflows:

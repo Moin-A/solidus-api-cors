@@ -206,6 +206,20 @@
       !!deleted_at
     end
 
+    def as_indexed_json(options = {})
+    {
+      id: id,
+      name: name,
+      description: description,
+      price: master&.price,           # optional
+      taxon_ids: taxons.pluck(:id),   # optional filtering
+      suggest: {
+        input: [name],
+        weight: 10
+      }
+    }
+    end
+
     # Determines if product is available. A product is available if it has not
     # been deleted, the available_on date is in the past
     # and the discontinue_on date is nil or in the future.

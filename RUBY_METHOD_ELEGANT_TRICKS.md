@@ -10,7 +10,8 @@ A collection of elegant Ruby patterns and techniques for writing clean, maintain
 3. [Dynamic Method Definition with `define_singleton_method`](#dynamic-method-definition-with-define_singleton_method)
 4. [Module Extension Pattern (`self.extended`)](#module-extension-pattern-selfextended)
 5. [ActiveRecord Joins: Using Table Names in Queries](#activerecord-joins-using-table-names-in-queries)
-6. [Prepending Modules: Self-Registering Pattern](#prepending-modules-self-registering-pattern)
+6. [Prepending Modules: Self-Registering Pattern](#prepending-modules-self-registering-pattern) 
+7. [Class-Level Attribute (Eigenclass Pattern)](#class-level-attribute-eigenclass-pattern)
 
 ---
 
@@ -1024,6 +1025,40 @@ Spree::Product      # Relative lookup (might find local Product)
 - Use `super` to call original method when wrapping
 
 ---
+## Class-Level Attribute (Eigenclass Pattern)
+
+1. Use Case
+
+Used when you want to store global configuration or shared state at the class or module level (not per instance). Common in libraries and Rails internals for setting clients, loggers, and settings.
+
+2. Examples
+
+Redis:
+
+```ruby
+# set a global Redis client
+Redis.current = Redis.new
+```
+
+Module with eigenclass accessor:
+
+```ruby
+module Search
+  class << self
+    attr_accessor :client
+  end
+end
+
+# Set the class-level attribute
+Search.client = "MyClient"
+
+# Read it elsewhere
+puts Search.client # => "MyClient"
+```
+
+Notes:
+- This stores state on the singleton class (the eigenclass) of the module/class.
+- Beware of global mutable state — consider thread-safety and explicit injection when writing libraries.
 
 ## ActiveRecord Inverse Associations (`inverse_of`)
 

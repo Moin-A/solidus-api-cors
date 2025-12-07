@@ -207,3 +207,5 @@ end
 **Created:** January 2025  
 **Related Files:** `app/models/concerns/spree/active_storage_adapter/attachment.rb`, `config/initializers/spree.rb`, `lib/tasks/reprocess_images.rake`
 
+
+

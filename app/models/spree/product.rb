@@ -40,9 +40,10 @@
       }
     } do
       mappings dynamic: false do
-        indexes :name,        type: "text", analyzer: "autocomplete_analyzer"
-        indexes :description, type: "text"
-        indexes :price,       type: "float"
+        # Use standard analyzer for name (not autocomplete) - this prevents over-matching
+        indexes :name, type: "text", analyzer: "standard"
+        indexes :description, type: "text", analyzer: "standard"
+        indexes :price, type: "float"
 
         indexes :suggest, type: "completion"
       end

@@ -124,7 +124,7 @@ module Api
        
        @top_rated_products =  @taxon.top_rated_products(limit:)
   
-       render json: @top_rated_products.as_json(include: [:master, images: { methods: [:attachment_url] }])
+       render json: @top_rated_products.as_json(include: [:spree_ratings,:master, images: { methods: [:attachment_url] }])
       end
     end
 

@@ -213,7 +213,7 @@
         name: name,
         slug: slug,
         description: description,
-        price: master&.price&.amount&.to_f,
+        price: price,
         taxon_ids: taxons.pluck(:id),
         suggest: {
           input: [name],

@@ -158,9 +158,7 @@ module Api
           {
             images: { methods: [:attachment_url] }
           }
-        ),
-        total: search_results.total,
-        query: query
+        )     
       }
     rescue StandardError => e
       # Catch Elasticsearch errors (connection, transport, etc.)

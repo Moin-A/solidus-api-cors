@@ -179,15 +179,10 @@ accessories:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.19.7
     host: <%= ENV["EC2_IP"] %>
     port: 9200
-    # Explicitly map ports to ensure they are published
-    options:
-      publish:
-        - "9200:9200"
-        - "9300:9300"
-      env:
+    env:
       clear:
         discovery.type: single-node
         ES_JAVA_OPTS: "-Xms512m -Xmx512m"
         xpack.security.enabled: "false"
     directories:
-      - data:/usr/share/elasticsearch/data    
+      - data:/usr/share/elasticsearch/data

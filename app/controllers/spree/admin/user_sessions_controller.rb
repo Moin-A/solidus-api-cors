@@ -80,11 +80,11 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
       self.resource = user
       set_flash_message!(:notice, :signed_in)
       
-      Rails.logger.info "About to manually set user in warden (skipping Devise callbacks)..."
-      # Bypass Devise's active_for_authentication? check which is throwing :warden (causing 401)
-      # We skip the :authentication event to avoid triggering callbacks
-      warden.set_user(resource, scope: resource_name)
-      Rails.logger.info "warden.set_user completed successfully"
+      Rails.logger.info "About to sign in user using Devise's sign_in helper..."
+      # Use Devise's sign_in helper which properly handles all the authentication flow
+      # This sets the user in warden, updates tracking fields, and runs callbacks
+      sign_in(resource_name, resource)
+      Rails.logger.info "sign_in completed successfully"
       
       # Don't call spree_current_user here as it might trigger warden.authenticate
       # Use the resource (user) we already have instead
@@ -132,7 +132,9 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   # Override Devise's after_sign_in_path_for to redirect admin users to /admin
   def after_sign_in_path_for(resource)
     # Use signed_in_root_path which returns /admin
-    signed_in_root_path(resource)
+    path = signed_in_root_path(resource)
+    Rails.logger.info "after_sign_in_path_for returning: #{path.inspect}"
+    path
   end
 
   # Override sign_in_params to ensure params are permitted
@@ -154,11 +156,12 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
     begin
       path = Spree::Core::Engine.routes.url_helpers.admin_path
       Rails.logger.info "signed_in_root_path resolved to: #{path.inspect}"
-      path
+      return path
     rescue => e
       Rails.logger.error "signed_in_root_path failed: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.first(10).join("\n") if e.backtrace
       # Fallback to direct path if route helper fails
-      '/admin'
+      return '/admin'
     end
   end
 

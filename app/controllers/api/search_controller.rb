@@ -151,7 +151,7 @@ module Api
         min_score: 0.5  # Filter out very low relevance results
       )
         
-      @products = search_results.records.includes(:images)
+      @products = search_results.records.to_a
 
       render json: {
         products: @products.as_json(include: 

@@ -110,7 +110,7 @@ module Api
       query = params[:query]
       return render json: { products: [] } if query.blank?
 
-      # Use Elasticsearch with precise matching
+      # Use Elasticsearch with precise matching and partial word support
       search_results = Spree::Product.search(
         query: {
           bool: {
@@ -131,6 +131,23 @@ module Api
                     query: query,
                     operator: 'and',
                     boost: 5
+                  }
+                }
+              },
+              {
+                # Partial word matching at the end of phrases (e.g., "speak" matches "speakers")
+                match_phrase_prefix: {
+                  name: {
+                    query: query,
+                    boost: 3
+                  }
+                }
+              },
+              {
+                # Direct prefix matching on name field (e.g., "speak" matches "speakers")
+                prefix: {
+                  name: {
+                    value: query.downcase
                   }
                 }
               },

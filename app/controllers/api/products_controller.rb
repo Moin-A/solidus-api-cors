@@ -113,7 +113,8 @@ module Api
     end
 
     def top_rated
-      key = params[:taxon_id] || params[:permalink]  
+      key = params[:taxon_id] || params[:permalink]
+      limit = params[:limit] || 3  
       cache_key = "top_rated_products_taxon_#{key}"
       @taxon = Spree::Taxon.find_by(permalink: key)
       
@@ -121,7 +122,7 @@ module Api
         render json: {error: "Taxon not found"}, status: :not_found
       else
        
-       @top_rated_products =  @taxon.top_rated_products(limit: 3)
+       @top_rated_products =  @taxon.top_rated_products(limit:)
   
        render json: @top_rated_products.as_json(include: [:master, images: { methods: [:attachment_url] }])
       end

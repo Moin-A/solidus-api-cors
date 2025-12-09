@@ -72,7 +72,11 @@ module Api
             },
             primary_taxon: {},
             images: {},
-            master: {},
+            master:  {
+                include: {
+                  default_price: { only: [:amount, :currency] }
+                }
+              },
           }
         ) 
   

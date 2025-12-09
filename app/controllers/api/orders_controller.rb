@@ -40,9 +40,10 @@ module Api
 
     def review_product
       line_item = Spree::LineItem.find(params[:lineItemId])
+      comment = params[:comment]
       rating_value = params[:rating].to_i
 
-      rating = Spree::Rating.new(line_item: line_item, rating: rating_value, user: current_user)
+      rating = Spree::Rating.new(line_item: line_item, rating: rating_value, user: current_user, comment: comment)
 
       if rating.save
         render json: { message: 'Rating submitted successfully' }, status: :created

@@ -26,7 +26,11 @@ module Api
       # Skip authentication for specific public API routes
       public_url = [
         "api/products#index",
-        "api/products#show"
+        "api/products#show",
+        "api/products#top_rated",
+        "api/search#products",
+        "api/search#suggestions",
+        "api/search#elasticsearch_products"
       ]
      
       public_url.include?("#{params["controller"]}##{params["action"]}")

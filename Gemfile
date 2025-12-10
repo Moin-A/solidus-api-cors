@@ -112,3 +112,7 @@ gem "solidus_admin", ">= 0.2"
 gem "elasticsearch-rails", "~> 8.0"
 
 gem "elasticsearch-model", "~> 8.0"
+
+gem "scout_apm", "~> 6.0"
+
+gem "scout_apm_logging", "~> 2.1"

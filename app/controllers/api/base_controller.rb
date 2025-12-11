@@ -32,7 +32,8 @@ module Api
         "api/search#suggestions",
         "api/search#elasticsearch_products",
         "api/taxons#index",
-        "api/taxons#show"
+        "api/taxons#show",
+        "api/categories#taxons",
       ]
      
       public_url.include?("#{params["controller"]}##{params["action"]}")

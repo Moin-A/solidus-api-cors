@@ -12,3 +12,6 @@ Spree::Auth::Engine.load_seed
 
 # Create customer role if it doesn't exist
 Spree::Role.find_or_create_by!(name: 'customer')
+
+# Create client role if it doesn't exist
+Spree::Role.find_or_create_by!(name: 'client')
